@@ -3,7 +3,12 @@
 // WITH_REFLECT
 // ISSUE: KT-70052
 // NO_CHECK_LAMBDA_INLINING
+
+// Android tests put the file into different package
+// IGNORE_BACKEND: ANDROID
+
 // FILE: lib.kt
+
 import kotlin.reflect.typeOf
 
 inline fun <reified T1> typeOfX(x: T1) = typeOf<T1>()
