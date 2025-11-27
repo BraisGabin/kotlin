@@ -24,9 +24,10 @@ repositories {
     }
 }
 
+// Repo content: https://dl.google.com/android/repository/repository2-1.xml
 val platformToolsVersion = "r36.0.0"
 val commandLineToolsVersion = "13114758" /*19.0*/
-val emulatorVersion = "5395263" // v28.0.25.0
+val emulatorVersion = "14433334" // v36.4.1
 
 dependencies {
     listOf("linux", "windows", "darwin").forEach {
@@ -45,6 +46,16 @@ val sdkDestDirName = "androidSdk"
 val toolsOs = when {
     OperatingSystem.current().isWindows -> "windows"
     OperatingSystem.current().isMacOsX -> "macosx"
+    OperatingSystem.current().isLinux -> "linux"
+    else -> {
+        logger.error("Unknown operating system for android tools: ${OperatingSystem.current().name}")
+        ""
+    }
+}
+
+val toolsOsShort = when {
+    OperatingSystem.current().isWindows -> "win"
+    OperatingSystem.current().isMacOsX -> "mac"
     OperatingSystem.current().isLinux -> "linux"
     else -> {
         logger.error("Unknown operating system for android tools: ${OperatingSystem.current().name}")
@@ -203,10 +214,7 @@ androidBuildTools("35.0.0")
 
 unzipSdkTask("android_m2repository", "r44", "extras/android", "")
 unzipSdkTask("platform-tools", platformToolsVersion, "", toolsOsDarwin)
-unzipSdkTask("commandlinetools-$toolsOsDarwin", "${commandLineToolsVersion}_latest", "", "")
-unzipSdkTask("emulator-$toolsOsDarwin", emulatorVersion, "", "", prepareTask = prepareEmulator)
-unzipSdkTask("arm64-v8a", "28", "system-images/android-28/default", "r02", prepareTask = prepareEmulator)
-unzipSdkTask("x86", "28", "system-images/android-28/default", "r04", prepareTask = prepareEmulator)
+unzipSdkTask("commandlinetools-$toolsOsShort", "${commandLineToolsVersion}_latest", "", "")
 
 val clean by task<Delete> {
     delete(layout.buildDirectory)
