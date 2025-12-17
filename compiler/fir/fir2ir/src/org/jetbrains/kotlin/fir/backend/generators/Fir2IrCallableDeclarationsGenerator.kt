@@ -10,6 +10,7 @@ import org.jetbrains.kotlin.descriptors.Visibilities
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.backend.*
 import org.jetbrains.kotlin.fir.backend.utils.*
+import org.jetbrains.kotlin.fir.backend.utils.toIrConst
 import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyGetter
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertySetter
@@ -46,7 +47,6 @@ import org.jetbrains.kotlin.ir.types.IrType
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.*
 import org.jetbrains.kotlin.types.AbstractTypeChecker
-import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -313,6 +313,12 @@ class Fir2IrCallableDeclarationsGenerator(private val c: Fir2IrComponents) : Fir
                                 if (initializer is FirLiteralExpression) {
                                     val constType = initializer.resolvedType.toIrType()
                                     field.initializer = factory.createExpressionBody(initializer.toIrConst(constType))
+                                } else if (property.isConst) {
+                                    val evaluatedInitializer = property.evaluatedInitializer?.unwrapOr<FirLiteralExpression> {
+                                        error("Unexpected evaluated initializer for const property: ${property.render()}")
+                                    } ?: error("Evaluated initializer is null for const property: ${property.render()}")
+                                    val irConst = evaluatedInitializer.toIrConst(evaluatedInitializer.resolvedType.toIrType())
+                                    field.initializer = factory.createExpressionBody(irConst)
                                 }
                             }
                         }
@@ -764,8 +770,12 @@ class Fir2IrCallableDeclarationsGenerator(private val c: Fir2IrComponents) : Fir
 
                 if (!skipDefaultParameter && defaultValue != null) {
                     this.defaultValue = when {
-                        forcedDefaultValueConversion && defaultValue !is FirExpressionStub ->
-                            defaultValue.asCompileTimeIrInitializerForAnnotationParameter()
+                        forcedDefaultValueConversion && defaultValue !is FirExpressionStub -> {
+                            val valueToConvert = valueParameter.evaluatedInitializer?.unwrapOr<FirExpression> {
+                                error("Unexpected evaluated initializer for default annotation constructor parameter: ${valueParameter.render()}")
+                            } ?: defaultValue
+                            valueToConvert.asCompileTimeIrInitializerForAnnotationParameter()
+                        }
                         useStubForDefaultValueStub || defaultValue !is FirExpressionStub ->
                             factory.createExpressionBody(
                                 IrErrorExpressionImpl(
