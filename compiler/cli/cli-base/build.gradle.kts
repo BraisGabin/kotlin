@@ -58,7 +58,28 @@ generatedSourcesTask(
             "jsArguments",
             "nativeArguments",
             "metadataArguments",
-            "commonJsWasmArguments",
+            "commonJsAndWasmArguments",
+            "legacyWasmArguments",
+        )
+    }
+)
+
+generatedSourcesTask(
+    taskName = "generateCliArgumentsCopy",
+    generatorProject = ":compiler:cli:cli-arguments-generator",
+    generatorMainClass = "org.jetbrains.kotlin.cli.arguments.generator.MainKt",
+    argsProvider = { generationRoot ->
+        listOf(
+            generationRoot.toString(),
+            "commonToolArguments",
+            "commonCompilerArguments",
+            "jvmCompilerArguments",
+            "commonKlibBasedArguments",
+            "wasmArguments",
+            "jsArguments",
+            "nativeArguments",
+            "metadataArguments",
+            "commonJsAndWasmArguments",
             "legacyWasmArguments",
         )
     }

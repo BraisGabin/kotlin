@@ -6780,7 +6780,7 @@
                         ],
                         "nestedLevels": [
                             {
-                                "name": "commonJsWasmArguments",
+                                "name": "commonJsAndWasmArguments",
                                 "arguments": [
                                     {
                                         "name": "Xcache-directory",

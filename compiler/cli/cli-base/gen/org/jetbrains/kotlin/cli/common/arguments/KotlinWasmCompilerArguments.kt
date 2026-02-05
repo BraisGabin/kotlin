@@ -10,7 +10,7 @@ import com.intellij.util.xmlb.annotations.Transient
 // Please declare arguments in compiler/arguments/src/org/jetbrains/kotlin/arguments/description/KotlinWasmCompilerArguments.kt
 // DO NOT MODIFY IT MANUALLY.
 
-class KotlinWasmCompilerArguments : CommonJsWasmCompilerArguments() {
+class KotlinWasmCompilerArguments : CommonJsAndWasmCompilerArguments() {
     @Argument(
         value = "-Xir-dce-dump-reachability-info-to-file",
         valueDescription = "<path>",

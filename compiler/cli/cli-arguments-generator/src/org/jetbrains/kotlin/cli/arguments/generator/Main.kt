@@ -114,10 +114,10 @@ val levelToClassNameMap = listOf(
         originFileName = "MetadataCompilerArguments",
     ),
     ArgumentsInfo(
-        levelName = CompilerArgumentsLevelNames.commonJsWasmArguments,
-        className = "CommonJsWasmCompilerArguments",
+        levelName = CompilerArgumentsLevelNames.commonJsAndWasmArguments,
+        className = "CommonJsAndWasmCompilerArguments",
         levelIsFinal = false,
-        originFileName = "CommonJsWasmCompilerArguments",
+        originFileName = "CommonJsAndWasmCompilerArguments",
     ),
     ArgumentsInfo(
         levelName = CompilerArgumentsLevelNames.wasmArguments,

@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.cli.common.arguments
 
 @OptIn(org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI::class)
 fun copyKotlinWasmCompilerArguments(from: KotlinWasmCompilerArguments, to: KotlinWasmCompilerArguments): KotlinWasmCompilerArguments {
-    copyCommonJsWasmCompilerArguments(from, to)
+    copyCommonJsAndWasmCompilerArguments(from, to)
 
     to.debuggerCustomFormatters = from.debuggerCustomFormatters
     to.forceDebugFriendlyCompilation = from.forceDebugFriendlyCompilation

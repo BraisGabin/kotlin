@@ -27,8 +27,8 @@ val kotlinCompilerArguments = compilerArguments {
                 mergeWith = setOf(actualCommonKlibBasedArguments, removedCommonKlibBasedCompilerArguments)
             ) {
                 subLevel(
-                    name = CompilerArgumentsLevelNames.commonJsWasmArguments,
-                    mergeWith = setOf(actualCommonJsWasmArguments)
+                    name = CompilerArgumentsLevelNames.commonJsAndWasmArguments,
+                    mergeWith = setOf(actualCommonJsAndWasmArguments)
                 ) {
                     subLevel(
                         name = CompilerArgumentsLevelNames.legacyWasmArguments,

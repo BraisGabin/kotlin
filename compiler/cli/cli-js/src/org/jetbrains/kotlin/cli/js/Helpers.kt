@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.cli.js
 
 import com.intellij.util.ExceptionUtil
-import org.jetbrains.kotlin.cli.common.arguments.CommonJsWasmCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonJsAndWasmCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants
 import org.jetbrains.kotlin.cli.common.fir.FirDiagnosticsCompilerResultsReporter
@@ -32,14 +32,14 @@ val K2JSCompilerArguments.targetVersion: EcmaVersion?
         }
     }
 
-val CommonJsWasmCompilerArguments.granularity: JsGenerationGranularity
+val CommonJsAndWasmCompilerArguments.granularity: JsGenerationGranularity
     get() = when {
         this.irPerFile -> JsGenerationGranularity.PER_FILE
         this.irPerModule -> JsGenerationGranularity.PER_MODULE
         else -> JsGenerationGranularity.WHOLE_PROGRAM
     }
 
-val CommonJsWasmCompilerArguments.dtsStrategy: TsCompilationStrategy
+val CommonJsAndWasmCompilerArguments.dtsStrategy: TsCompilationStrategy
     get() = when {
         !this.generateDts -> TsCompilationStrategy.NONE
         this.irPerFile -> TsCompilationStrategy.EACH_FILE
@@ -78,7 +78,7 @@ private fun String.splitByPathSeparator(): List<String> {
 
 internal fun calculateSourceMapSourceRoot(
     messageCollector: MessageCollector,
-    arguments: CommonJsWasmCompilerArguments,
+    arguments: CommonJsAndWasmCompilerArguments,
 ): String {
     var commonPath: File? = null
     val pathToRoot = mutableListOf<File>()
@@ -136,7 +136,7 @@ fun reportCollectedDiagnostics(
 internal val CompilerConfiguration.platformChecker: KlibPlatformChecker
     get() = if (wasmCompilation) KlibPlatformChecker.Wasm(wasmTarget.alias) else KlibPlatformChecker.JS
 
-internal fun initializeFinalArtifactConfiguration(configuration: CompilerConfiguration, arguments: CommonJsWasmCompilerArguments) {
+internal fun initializeFinalArtifactConfiguration(configuration: CompilerConfiguration, arguments: CommonJsAndWasmCompilerArguments) {
     configuration.artifactConfiguration = WebArtifactConfiguration(
         moduleKind = configuration.moduleKind ?: return,
         moduleName = configuration.moduleName ?: return,

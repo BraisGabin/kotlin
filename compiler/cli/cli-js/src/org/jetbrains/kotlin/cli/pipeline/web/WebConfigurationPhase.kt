@@ -9,7 +9,7 @@ import com.intellij.openapi.Disposable
 import com.intellij.openapi.util.text.StringUtil
 import org.jetbrains.kotlin.backend.common.linkage.partial.setupPartialLinkageConfig
 import org.jetbrains.kotlin.cli.common.allowKotlinPackage
-import org.jetbrains.kotlin.cli.common.arguments.CommonJsWasmCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonJsAndWasmCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.KotlinWasmCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.cliArgument
@@ -106,7 +106,7 @@ object CommonJsConfigurationUpdater : CommonWebConfigurationUpdater<K2JSCompiler
 /**
  * Contains configuration updating logic shared between JS and WASM CLIs
  */
-abstract class CommonWebConfigurationUpdater<T : CommonJsWasmCompilerArguments> : ConfigurationUpdater<T>() {
+abstract class CommonWebConfigurationUpdater<T : CommonJsAndWasmCompilerArguments> : ConfigurationUpdater<T>() {
     override fun fillConfiguration(
         input: ArgumentsPipelineArtifact<T>,
         configuration: CompilerConfiguration,
@@ -253,7 +253,7 @@ abstract class CommonWebConfigurationUpdater<T : CommonJsWasmCompilerArguments> 
 
     internal fun initializeCommonConfiguration(
         configuration: CompilerConfiguration,
-        arguments: CommonJsWasmCompilerArguments,
+        arguments: CommonJsAndWasmCompilerArguments,
         rootDisposable: Disposable,
     ) {
         configuration.setupCommonKlibArguments(arguments, canBeMetadataKlibCompilation = false, rootDisposable = rootDisposable)

@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.cli.pipeline.web
 
 import org.jetbrains.kotlin.backend.common.phaser.then
-import org.jetbrains.kotlin.cli.common.arguments.CommonJsWasmCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonJsAndWasmCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JSCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.KotlinWasmCompilerArguments
 import org.jetbrains.kotlin.cli.js.toWasmArguments
@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.config.phaser.PhaseConfig
 import org.jetbrains.kotlin.config.phaser.PhaserState
 import org.jetbrains.kotlin.util.PerformanceManager
 
-abstract class WebCliPipeline<T : CommonJsWasmCompilerArguments>(
+abstract class WebCliPipeline<T : CommonJsAndWasmCompilerArguments>(
     override val defaultPerformanceManager: PerformanceManager,
 ) : AbstractCliPipeline<T>() {
 

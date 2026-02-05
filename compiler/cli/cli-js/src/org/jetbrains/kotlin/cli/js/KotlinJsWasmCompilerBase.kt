@@ -8,7 +8,7 @@ package org.jetbrains.kotlin.cli.js
 import com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.cli.common.CLICompiler
 import org.jetbrains.kotlin.cli.common.ExitCode
-import org.jetbrains.kotlin.cli.common.arguments.CommonJsWasmCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonJsAndWasmCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.RUNTIME_DIAGNOSTIC_EXCEPTION
 import org.jetbrains.kotlin.cli.common.arguments.K2JsArgumentConstants.RUNTIME_DIAGNOSTIC_LOG
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.STRONG_WARNING
@@ -27,7 +27,7 @@ import org.jetbrains.kotlin.utils.KotlinPaths
 import org.jetbrains.kotlin.utils.PathUtil
 import java.io.File
 
-abstract class KotlinJsCompilerBase<T : CommonJsWasmCompilerArguments> : CLICompiler<T>() {
+abstract class KotlinJsCompilerBase<T : CommonJsAndWasmCompilerArguments> : CLICompiler<T>() {
     abstract val builtInsPlatform: BuiltInsPlatform
     override val platform: TargetPlatform
         get() = JsPlatforms.defaultJsPlatform

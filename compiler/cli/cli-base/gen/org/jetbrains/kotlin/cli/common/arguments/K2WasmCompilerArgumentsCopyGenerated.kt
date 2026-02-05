@@ -9,7 +9,7 @@ package org.jetbrains.kotlin.cli.common.arguments
 @OptIn(org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI::class)
 @Suppress("DEPRECATION")
 fun copyK2WasmCompilerArguments(from: K2WasmCompilerArguments, to: K2WasmCompilerArguments): K2WasmCompilerArguments {
-    copyCommonJsWasmCompilerArguments(from, to)
+    copyCommonJsAndWasmCompilerArguments(from, to)
 
     to.debuggerCustomFormatters = from.debuggerCustomFormatters
     to.forceDebugFriendlyCompilation = from.forceDebugFriendlyCompilation

@@ -6,7 +6,7 @@
 package org.jetbrains.kotlin.cli.js
 
 import org.jetbrains.kotlin.backend.wasm.ic.WasmICContext
-import org.jetbrains.kotlin.cli.common.arguments.CommonJsWasmCompilerArguments
+import org.jetbrains.kotlin.cli.common.arguments.CommonJsAndWasmCompilerArguments
 import org.jetbrains.kotlin.cli.common.arguments.KotlinWasmCompilerArguments
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity.LOGGING
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
@@ -34,7 +34,7 @@ sealed class IcCachesConfigurationData {
 
 internal fun prepareIcCaches(
     cacheDirectory: String,
-    arguments: CommonJsWasmCompilerArguments,
+    arguments: CommonJsAndWasmCompilerArguments,
     messageCollector: MessageCollector,
     outputDir: File,
     targetConfiguration: CompilerConfiguration,
