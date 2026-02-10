@@ -25,6 +25,7 @@ import org.jetbrains.kotlin.cli.common.LegacyK2CliPipeline
 import org.jetbrains.kotlin.cli.common.config.KotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.extensionsStorage
 import org.jetbrains.kotlin.cli.jvm.compiler.*
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment.Companion.configureProjectEnvironment
 import org.jetbrains.kotlin.cli.jvm.config.*
@@ -173,7 +174,7 @@ private class ProjectEnvironmentWithCoreEnvironmentEmulation(
     getPackagePartProviderFn: (GlobalSearchScope) -> PackagePartProvider,
     val initialRoots: List<JavaRoot>,
     val configuration: CompilerConfiguration
-) : VfsBasedProjectEnvironment(project, knownFileSystems, getPackagePartProviderFn) {
+) : VfsBasedProjectEnvironment(project, knownFileSystems, configuration.extensionsStorage, getPackagePartProviderFn) {
 
     val packagePartProviders = mutableListOf<JvmPackagePartProvider>()
 
