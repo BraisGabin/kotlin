@@ -594,9 +594,6 @@ tasks.register<Sync>("collectKoverIcReports") {
     group = KGP_TEST_TASKS_GROUP
     description = "Collect Kover .ic reports from integration and functional tests into a single directory"
 
-    dependsOn(":kotlin-gradle-plugin:functionalTest")
-    dependsOn("kgpAllParallelTests")
-
     val integrationTestReportsDir = layout.buildDirectory.dir("kover/testkit")
     val functionalTestReportsDir = project(":kotlin-gradle-plugin").layout.buildDirectory.dir("kover/bin-reports")
     val combinedReportsDir = layout.buildDirectory.dir("kover/combined-ic")
