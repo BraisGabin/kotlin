@@ -143,3 +143,14 @@ scopes:
 
   DefaultStarImportingScope, index = 18
 
+
+possible smart casts:
+  source:
+    symbol = KaContextParameterSymbol:
+      a: T
+    type = T
+  isStable = true
+  resultingTypes:
+    BaseA
+    kotlin.Any
+    A
