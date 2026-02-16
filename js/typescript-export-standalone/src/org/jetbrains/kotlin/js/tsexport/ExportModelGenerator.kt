@@ -226,6 +226,7 @@ internal class ExportModelGenerator(private val config: TypeScriptExportConfig) 
 
         return ExportedTypeParameter(
             name = typeParameter.name.identifier,
+            variance = typeParameter.variance.exportedVariance,
             constraint = when (constraints.size) {
                 0 -> null
                 1 -> constraints[0]

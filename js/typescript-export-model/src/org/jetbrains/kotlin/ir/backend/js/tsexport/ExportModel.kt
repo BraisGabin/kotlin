@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.ir.backend.js.tsexport
 
 import org.jetbrains.kotlin.js.config.ModuleKind
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.types.Variance
 
 public sealed class ExportedDeclaration {
     public val attributes: MutableSet<ExportedAttribute> = mutableSetOf()
@@ -230,7 +231,13 @@ public sealed class ExportedType {
         if (implicitlyExportedType) ImplicitlyExportedType(this, exportedSupertype) else this
 }
 
-public data class ExportedTypeParameter(val name: String, var constraint: ExportedType? = null)
+public data class ExportedTypeParameter(val name: String, val variance: ExportedVariance?, var constraint: ExportedType? = null)
+
+public enum class ExportedVariance(public val keyword: String) {
+    INVARIANT(""),
+    COVARIANT("out "),
+    CONTRAVARIANT("in "),
+}
 
 public enum class ExportedVisibility(public val keyword: String) {
     DEFAULT(""),

@@ -134,7 +134,7 @@ public class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
     }
 
     private fun ExportedConstructSignature.generateTypeScriptString(indent: String): String {
-        return "new${renderTypeParameters(typeParameters)}(${parameters.generateTypeScriptString(indent)}): ${returnType.toTypeScript(indent)};"
+        return "new${renderTypeParameters(typeParameters, includeVariance = false)}(${parameters.generateTypeScriptString(indent)}): ${returnType.toTypeScript(indent)};"
     }
 
     private fun ExportedProperty.generateTypeScriptString(indent: String, prefix: String): String {
@@ -171,15 +171,23 @@ public class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
         }
     }
 
-    private fun renderTypeParameters(typeParameters: List<ExportedTypeParameter>): String = if (typeParameters.isNotEmpty()) {
-        typeParameters.joinToString(", ", "<", ">") { tp ->
-            tp.constraint?.let {
-                "${tp.name} extends ${it.toTypeScript(indent, isInCommentContext = false)}"
-            } ?: tp.name
+    private fun renderTypeParameters(typeParameters: List<ExportedTypeParameter>, includeVariance: Boolean): String =
+        if (typeParameters.isNotEmpty()) {
+            typeParameters.joinToString(", ", "<", ">") { tp ->
+                buildString {
+                    tp.variance?.let {
+                        if (includeVariance)
+                            append(it.keyword)
+                    }
+                    append(tp.name)
+                    tp.constraint?.let {
+                        append(" extends ${it.toTypeScript(indent, isInCommentContext = false)}")
+                    }
+                }
+            }
+        } else {
+            ""
         }
-    } else {
-        ""
-    }
 
     private fun ExportedFunction.generateTypeScriptString(indent: String, prefix: String): String {
         val visibility = if (isProtected) "protected " else ""
@@ -195,7 +203,7 @@ public class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
         }
 
         val renderedParameters = parameters.generateTypeScriptString(indent)
-        val renderedTypeParameters = renderTypeParameters(typeParameters)
+        val renderedTypeParameters = renderTypeParameters(typeParameters, supportsExplicitVariance)
 
         val renderedReturnType = returnType.toTypeScript(indent)
         val containsUnresolvedChar = when (val exportedName = name) {
@@ -334,7 +342,7 @@ public class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
             ""
         }
 
-        val renderedTypeParameters = renderTypeParameters(typeParameters)
+        val renderedTypeParameters = renderTypeParameters(typeParameters, supportsExplicitVariance)
 
         val modifiers = if (isAbstract && !isInterface) "abstract " else ""
 
@@ -443,7 +451,7 @@ public class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
             "(" + parameters.generateTypeScriptString(indent) + ") => " + returnType.toTypeScript(indent, isInCommentContext)
 
         is ExportedType.ConstructorType ->
-            "abstract new " + renderTypeParameters(typeParameters) + "() => ${returnType.toTypeScript(indent, isInCommentContext)}"
+            "abstract new " + renderTypeParameters(typeParameters, includeVariance = false) + "() => ${returnType.toTypeScript(indent, isInCommentContext)}"
 
         is ExportedType.ClassType -> {
             name + if (arguments.isNotEmpty()) "<${arguments.joinToString(", ") { it.toTypeScript(indent, isInCommentContext) }}>" else ""
