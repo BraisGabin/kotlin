@@ -1153,6 +1153,7 @@ object FirTree : AbstractFirTreeBuilder() {
     }
 
     val qualifierWithContextSensitiveAlternative: Element by element(Expression) {
+        isSealed = true
         +field("contextSensitiveAlternative", propertyAccessExpression, nullable = true, withReplace = true) {
             optInAnnotation = firIdeOnlyAnnotation
             kDoc = """

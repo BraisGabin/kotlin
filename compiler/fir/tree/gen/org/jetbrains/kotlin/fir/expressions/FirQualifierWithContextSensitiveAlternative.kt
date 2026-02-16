@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.fir.visitors.FirVisitor
 /**
  * Generated from: [org.jetbrains.kotlin.fir.tree.generator.FirTree.qualifierWithContextSensitiveAlternative]
  */
-interface FirQualifierWithContextSensitiveAlternative : FirElement {
+sealed interface FirQualifierWithContextSensitiveAlternative : FirElement {
     override val source: KtSourceElement?
     /**
      * For resolved qualifier, it contains either null or a simple name property access which would be used for checking
