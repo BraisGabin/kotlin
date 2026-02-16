@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.fir.FirElementWithResolveState
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.symbols.lazyResolveToPhase
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
@@ -118,9 +119,11 @@ abstract class AbstractLLStubBasedResolutionTest : AbstractLLStubBasedTest<Pair<
 private fun dumpOutput(file: FirFile): String = lazyResolveRenderer(StringBuilder()).renderElementAsString(file, trim = true)
 
 abstract class AbstractLLSourceStubBasedResolutionTest : AbstractLLStubBasedResolutionTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractLLScriptStubBasedResolutionTest : AbstractLLStubBasedResolutionTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

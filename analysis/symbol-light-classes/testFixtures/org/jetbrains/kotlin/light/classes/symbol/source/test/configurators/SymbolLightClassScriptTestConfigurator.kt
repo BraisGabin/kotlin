@@ -6,5 +6,7 @@
 package org.jetbrains.kotlin.light.classes.symbol.base
 
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirScriptTestConfigurator
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 
-object SymbolLightClassScriptTestConfigurator : AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+object SymbolLightClassScriptTestConfigurator :
+    AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)

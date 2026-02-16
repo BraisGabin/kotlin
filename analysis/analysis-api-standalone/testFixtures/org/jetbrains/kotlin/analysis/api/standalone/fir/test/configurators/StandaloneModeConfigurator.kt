@@ -12,11 +12,13 @@ import org.jetbrains.kotlin.analysis.api.standalone.StandaloneSessionServiceRegi
 import org.jetbrains.kotlin.analysis.api.standalone.base.projectStructure.AnalysisApiServiceRegistrar
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirSourceTestConfigurator
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModuleStructure
+import org.jetbrains.kotlin.platform.TargetPlatform
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.services.TestModuleStructure
 import org.jetbrains.kotlin.test.services.TestServices
 
-object StandaloneModeConfigurator : StandaloneModeConfiguratorBase() {
+class StandaloneModeConfigurator(override val defaultTargetPlatform: TargetPlatform) : StandaloneModeConfiguratorBase() {
 
     override fun configureTest(builder: TestConfigurationBuilder, disposable: Disposable) {
         sourceConfigurator.configureTest(builder, disposable)
@@ -25,7 +27,8 @@ object StandaloneModeConfigurator : StandaloneModeConfiguratorBase() {
         super.configureTest(builder, disposable)
     }
 
-    private val sourceConfigurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    private val sourceConfigurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 
     override val serviceRegistrars: List<AnalysisApiServiceRegistrar<TestServices>>
         get() = sourceConfigurator.serviceRegistrars -

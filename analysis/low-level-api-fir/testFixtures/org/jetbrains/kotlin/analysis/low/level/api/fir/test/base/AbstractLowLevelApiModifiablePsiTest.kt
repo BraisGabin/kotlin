@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.Analys
 import org.jetbrains.kotlin.analysis.test.framework.base.AbstractAnalysisApiBasedTest
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModule
 import org.jetbrains.kotlin.analysis.test.framework.test.configurators.AnalysisApiTestConfigurator
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.testFramework.runWriteAction
@@ -35,7 +36,8 @@ abstract class AbstractLowLevelApiModifiablePsiTest : AbstractAnalysisApiBasedTe
     }
 }
 
-object AnalysisApiFirModifiablePsiSourceTestConfigurator : AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false) {
+object AnalysisApiFirModifiablePsiSourceTestConfigurator :
+    AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform) {
     override val serviceRegistrars: List<AnalysisApiServiceRegistrar<TestServices>> = buildList {
         addAll(super.serviceRegistrars)
         add(AnalysisApiModifiablePsiTestServiceRegistrar)

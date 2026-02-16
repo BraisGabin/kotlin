@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.analysis.api.impl.base.test.cases.components.resolve
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirScriptTestConfigurator
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirSourceTestConfigurator
 import org.jetbrains.kotlin.analysis.test.framework.test.configurators.AnalysisApiTestConfigurator
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.assertions
@@ -30,9 +31,11 @@ abstract class AbstractResolveCandidatesFirTreeConsistencyTest : AbstractResolve
 }
 
 abstract class AbstractSourceResolveCandidatesFirTreeConsistencyTest : AbstractResolveCandidatesFirTreeConsistencyTest() {
-    override val configurator: AnalysisApiTestConfigurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator: AnalysisApiTestConfigurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractScriptResolveCandidatesFirTreeConsistencyTest : AbstractResolveCandidatesFirTreeConsistencyTest() {
-    override val configurator: AnalysisApiTestConfigurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator: AnalysisApiTestConfigurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

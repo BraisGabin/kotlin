@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.analysis.test.framework.base.AbstractAnalysisApiExec
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.ktTestModuleStructure
 import org.jetbrains.kotlin.analysis.test.framework.test.configurators.AnalysisApiTestConfigurator
 import org.jetbrains.kotlin.analysis.utils.errors.requireIsInstance
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.assertions
 import org.junit.jupiter.api.Test
@@ -21,7 +22,8 @@ import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
 class BuiltinsStubsTest : AbstractAnalysisApiExecutionTest("testData/builtins/stubs") {
-    override val configurator: AnalysisApiTestConfigurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator: AnalysisApiTestConfigurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 
     @Test
     fun test(testServices: TestServices) {

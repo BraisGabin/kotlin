@@ -7,16 +7,17 @@ package org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators
 
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
-import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModuleFactory
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModule
+import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModuleFactory
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.createKtLibrarySourceModule
 import org.jetbrains.kotlin.codegen.forTestCompile.ForTestCompileRuntime
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.model.TestModule
 import org.jetbrains.kotlin.test.services.TestServices
 import java.nio.file.Path
 
-object AnalysisApiFirStdlibSourceTestConfigurator : AnalysisApiFirSourceLikeTestConfigurator(false) {
+object AnalysisApiFirStdlibSourceTestConfigurator : AnalysisApiFirSourceLikeTestConfigurator(false, JvmPlatforms.defaultJvmPlatform) {
     override fun configureTest(builder: TestConfigurationBuilder, disposable: Disposable) {
         super.configureTest(builder, disposable)
         builder.apply {

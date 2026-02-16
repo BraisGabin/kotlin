@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.types.forEachType
 import org.jetbrains.kotlin.fir.types.typeAnnotations
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
@@ -96,11 +97,13 @@ private fun ConeKotlinType.annotationContainingSymbols(): List<FirBasedSymbol<*>
 }
 
 abstract class AbstractSourceLazyTypeAnnotationsTest : AbstractLazyTypeAnnotationsTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractScriptLazyTypeAnnotationsTest : AbstractLazyTypeAnnotationsTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractOutOfContentRootLazyTypeAnnotationsTest : AbstractLazyTypeAnnotationsTest() {

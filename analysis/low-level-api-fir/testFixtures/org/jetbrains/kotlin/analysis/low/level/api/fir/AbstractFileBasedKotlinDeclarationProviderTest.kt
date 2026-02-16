@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
@@ -136,9 +137,11 @@ private fun parseCallableId(rawString: String): CallableId {
 }
 
 abstract class AbstractSourceFileBasedKotlinDeclarationProviderTest : AbstractFileBasedKotlinDeclarationProviderTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractScriptFileBasedKotlinDeclarationProviderTest : AbstractFileBasedKotlinDeclarationProviderTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

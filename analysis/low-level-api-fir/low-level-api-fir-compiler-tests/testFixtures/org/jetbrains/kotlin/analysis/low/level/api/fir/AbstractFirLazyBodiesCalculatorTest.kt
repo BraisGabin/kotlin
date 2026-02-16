@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.fir.expressions.FirLazyExpression
 import org.jetbrains.kotlin.fir.renderer.FirRenderer
 import org.jetbrains.kotlin.fir.scopes.kotlinScopeProvider
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
@@ -86,7 +87,8 @@ abstract class AbstractFirLazyBodiesCalculatorTest : AbstractAnalysisApiBasedTes
 }
 
 abstract class AbstractFirSourceLazyBodiesCalculatorTest : AbstractFirLazyBodiesCalculatorTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractFirOutOfContentRootLazyBodiesCalculatorTest : AbstractFirLazyBodiesCalculatorTest() {
@@ -94,5 +96,6 @@ abstract class AbstractFirOutOfContentRootLazyBodiesCalculatorTest : AbstractFir
 }
 
 abstract class AbstractFirScriptLazyBodiesCalculatorTest : AbstractFirLazyBodiesCalculatorTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.Analys
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirSourceTestConfigurator
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModule
 import org.jetbrains.kotlin.analysis.test.framework.services.expressionMarkerProvider
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtPsiFactory
 import org.jetbrains.kotlin.test.services.TestServices
@@ -28,7 +29,8 @@ abstract class AbstractDanglingFileInBlockModificationTes : AbstractInBlockModif
 }
 
 abstract class AbstractSourceDanglingFileInBlockModificationTest : AbstractDanglingFileInBlockModificationTes() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractOutOfContentRootDanglingFileInBlockModificationTest : AbstractDanglingFileInBlockModificationTes() {
@@ -36,5 +38,6 @@ abstract class AbstractOutOfContentRootDanglingFileInBlockModificationTest : Abs
 }
 
 abstract class AbstractScriptDanglingFileInBlockModificationTest : AbstractDanglingFileInBlockModificationTes() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

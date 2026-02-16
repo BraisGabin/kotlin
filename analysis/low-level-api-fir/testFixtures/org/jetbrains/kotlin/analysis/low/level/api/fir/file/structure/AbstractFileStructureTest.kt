@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.analysis.test.framework.base.AbstractAnalysisApiBase
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModule
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.util.listMultimapOf
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.forEachDescendantOfType
 import org.jetbrains.kotlin.test.TestDataAssertions
@@ -105,7 +106,8 @@ abstract class AbstractFileStructureTest : AbstractAnalysisApiBasedTest() {
 }
 
 abstract class AbstractSourceFileStructureTest : AbstractFileStructureTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractOutOfContentRootFileStructureTest : AbstractFileStructureTest() {
@@ -113,5 +115,6 @@ abstract class AbstractOutOfContentRootFileStructureTest : AbstractFileStructure
 }
 
 abstract class AbstractScriptFileStructureTest : AbstractFileStructureTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

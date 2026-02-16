@@ -6,14 +6,15 @@
 package org.jetbrains.kotlin.analysis.low.level.api.fir.resolve
 
 import org.jetbrains.kotlin.analysis.low.level.api.fir.api.getOrBuildFirOfType
-import org.jetbrains.kotlin.analysis.low.level.api.fir.withResolutionFacade
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirOutOfContentRootTestConfigurator
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirScriptTestConfigurator
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirSourceTestConfigurator
+import org.jetbrains.kotlin.analysis.low.level.api.fir.withResolutionFacade
 import org.jetbrains.kotlin.analysis.test.framework.base.AbstractAnalysisApiBasedTest
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModule
 import org.jetbrains.kotlin.fir.declarations.FirFile
 import org.jetbrains.kotlin.fir.renderer.FirRenderer
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.assertions
@@ -29,7 +30,7 @@ abstract class AbstractWholeFileResolvePhaseTest : AbstractAnalysisApiBasedTest(
 }
 
 abstract class AbstractSourceWholeFileResolvePhaseTest : AbstractWholeFileResolvePhaseTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractOutOfContentRootWholeFileResolvePhaseTest : AbstractWholeFileResolvePhaseTest() {
@@ -37,5 +38,5 @@ abstract class AbstractOutOfContentRootWholeFileResolvePhaseTest : AbstractWhole
 }
 
 abstract class AbstractScriptWholeFileResolvePhaseTest : AbstractWholeFileResolvePhaseTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

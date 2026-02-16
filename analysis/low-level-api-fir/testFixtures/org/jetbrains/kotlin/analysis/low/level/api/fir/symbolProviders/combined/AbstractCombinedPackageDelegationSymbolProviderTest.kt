@@ -10,12 +10,14 @@ import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.Analys
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModule
 import org.jetbrains.kotlin.analysis.test.framework.test.configurators.AnalysisApiTestConfigurator
 import org.jetbrains.kotlin.fir.resolve.providers.FirSymbolProvider
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 
 /**
  * @see LLCombinedPackageDelegationSymbolProvider
  */
 abstract class AbstractCombinedPackageDelegationSymbolProviderTest : AbstractSymbolProviderTest() {
-    override val configurator: AnalysisApiTestConfigurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator: AnalysisApiTestConfigurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 
     override fun findTestSymbolProvider(mainModule: KtTestModule): FirSymbolProvider {
         val symbolProviders = mainModule.ktModule.findSymbolProvidersOfType<LLCombinedPackageDelegationSymbolProvider>()

@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModul
 import org.jetbrains.kotlin.analysis.test.framework.projectStructure.ktTestModuleStructure
 import org.jetbrains.kotlin.analysis.test.framework.services.environmentManager
 import org.jetbrains.kotlin.analysis.test.framework.test.configurators.AnalysisApiTestServiceRegistrar
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
@@ -33,7 +34,6 @@ import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.assertions
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import java.util.*
-import kotlin.error
 
 /**
  * This test targets `ContentScopeProvider` and `KaResolutionScopeProvider`.
@@ -385,7 +385,7 @@ open class AbstractContentAndResolutionScopesProvidersTest : AbstractAnalysisApi
 
 
 private class ContentScopeProviderConfigurator(private val scopeRefinerToRegister: DummyContentScopeRefiner) :
-    AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false) {
+    AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform) {
     override val serviceRegistrars: List<AnalysisApiServiceRegistrar<TestServices>>
         get() = buildList {
             addAll(super.serviceRegistrars)

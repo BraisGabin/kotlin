@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.analysis.test.framework.projectStructure.KtTestModul
 import org.jetbrains.kotlin.analysis.utils.printer.prettyPrint
 import org.jetbrains.kotlin.fir.builder.AbstractRawFirBuilderTestCase.Companion.collectAnnotations
 import org.jetbrains.kotlin.fir.render
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.test.directives.model.DirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
@@ -187,5 +188,6 @@ abstract class AbstractLLAnnotationArgumentsCalculatorTest : AbstractLLStubBased
 }
 
 abstract class AbstractLLSourceAnnotationArgumentsCalculatorTest : AbstractLLAnnotationArgumentsCalculatorTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

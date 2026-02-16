@@ -29,11 +29,14 @@ abstract class SymbolLightClassesDecompiledTestConfigurator(
     override val frontendKind: FrontendKind get() = FrontendKind.Fir
 
     override fun configureTest(builder: TestConfigurationBuilder, disposable: Disposable) {
-        AnalysisApiFirLibraryBinaryDecompiledTestConfigurator.configureTest(builder, disposable)
+        AnalysisApiFirLibraryBinaryDecompiledTestConfigurator(defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform).configureTest(
+            builder,
+            disposable
+        )
     }
 
     override val serviceRegistrars: List<AnalysisApiServiceRegistrar<TestServices>>
-        get() = AnalysisApiFirLibraryBinaryDecompiledTestConfigurator.serviceRegistrars +
+        get() = AnalysisApiFirLibraryBinaryDecompiledTestConfigurator(defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform).serviceRegistrars +
                 AnalysisApiSymbolLightClassesDecompiledTestServiceRegistrar
 
     override fun createModules(
@@ -41,7 +44,11 @@ abstract class SymbolLightClassesDecompiledTestConfigurator(
         testServices: TestServices,
         project: Project,
     ): KtTestModuleStructure {
-        return AnalysisApiFirLibraryBinaryDecompiledTestConfigurator.createModules(moduleStructure, testServices, project)
+        return AnalysisApiFirLibraryBinaryDecompiledTestConfigurator(defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform).createModules(
+            moduleStructure,
+            testServices,
+            project
+        )
     }
 }
 

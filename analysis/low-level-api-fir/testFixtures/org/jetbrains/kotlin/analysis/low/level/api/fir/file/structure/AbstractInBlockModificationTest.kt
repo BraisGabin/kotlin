@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.fir.declarations.FirDeclaration
 import org.jetbrains.kotlin.fir.declarations.FirPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.symbols.lazyResolveToPhaseRecursively
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtCodeFragment
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.parentsWithSelf
@@ -191,7 +192,8 @@ private fun FirDeclaration.render(): String {
 }
 
 abstract class AbstractSourceInBlockModificationTest : AbstractInBlockModificationTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractOutOfContentRootInBlockModificationTest : AbstractInBlockModificationTest() {
@@ -199,5 +201,6 @@ abstract class AbstractOutOfContentRootInBlockModificationTest : AbstractInBlock
 }
 
 abstract class AbstractScriptInBlockModificationTest : AbstractInBlockModificationTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }

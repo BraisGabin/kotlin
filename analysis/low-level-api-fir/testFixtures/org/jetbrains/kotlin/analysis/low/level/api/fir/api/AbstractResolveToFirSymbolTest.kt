@@ -15,6 +15,7 @@ import org.jetbrains.kotlin.analysis.utils.printer.prettyPrint
 import org.jetbrains.kotlin.fir.declarations.FirResolvePhase
 import org.jetbrains.kotlin.fir.render
 import org.jetbrains.kotlin.name.ClassId
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtDeclaration
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
@@ -32,7 +33,8 @@ import org.jetbrains.kotlin.test.services.assertions
  * if equal, by the start offset of the PSI element (sources only).
  */
 abstract class AbstractResolveToFirSymbolTest : AbstractAnalysisApiBasedTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 
     private data class TargetElement(
         val ktDeclaration: KtDeclaration,

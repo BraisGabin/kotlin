@@ -7,8 +7,12 @@ package org.jetbrains.kotlin.light.classes.symbol.source
 
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirSourceTestConfigurator
 import org.jetbrains.kotlin.light.classes.symbol.base.AbstractSymbolLightClassesAnnotationEqualityTest
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 
 abstract class AbstractSymbolLightClassesAnnotationEqualityForSourceTest : AbstractSymbolLightClassesAnnotationEqualityTest(
-    configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false),
+    configurator = AnalysisApiFirSourceTestConfigurator(
+        analyseInDependentSession = false,
+        defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform
+    ),
     isTestAgainstCompiledCode = false,
 )

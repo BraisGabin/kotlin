@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.analysis.test.framework.projectStructure.*
 import org.jetbrains.kotlin.analysis.test.framework.test.configurators.TestModuleKind
 import org.jetbrains.kotlin.analysis.test.framework.utils.SkipTestException
 import org.jetbrains.kotlin.platform.TargetPlatform
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.directives.model.DirectiveApplicability
 import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
@@ -26,7 +27,8 @@ import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.targetPlatform
 import java.nio.file.Path
 
-abstract class AnalysisApiFirOutOfContentRootTestConfiguratorBase : AnalysisApiFirSourceLikeTestConfigurator(false) {
+abstract class AnalysisApiFirOutOfContentRootTestConfiguratorBase :
+    AnalysisApiFirSourceLikeTestConfigurator(false, JvmPlatforms.defaultJvmPlatform) {
     override fun configureTest(builder: TestConfigurationBuilder, disposable: Disposable) {
         super.configureTest(builder, disposable)
 

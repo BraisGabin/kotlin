@@ -7,10 +7,11 @@ package org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators
 
 import com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.analysis.low.level.api.fir.diagnostic.compiler.based.configureCustomScriptDefinitions
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 
 class AnalysisApiFirCustomScriptDefinitionTestConfigurator(analyseInDependentSession: Boolean) :
-    AnalysisApiFirScriptTestConfigurator(analyseInDependentSession) {
+    AnalysisApiFirScriptTestConfigurator(analyseInDependentSession, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform) {
     override fun configureTest(builder: TestConfigurationBuilder, disposable: Disposable) {
         super.configureTest(builder, disposable)
         builder.configureCustomScriptDefinitions()

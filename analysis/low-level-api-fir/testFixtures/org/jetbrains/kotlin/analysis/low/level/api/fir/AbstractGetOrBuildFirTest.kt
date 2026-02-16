@@ -28,10 +28,14 @@ import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.arguments
 import org.jetbrains.kotlin.fir.psi
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
-import org.jetbrains.kotlin.fir.renderer.*
+import org.jetbrains.kotlin.fir.renderer.FirDeclarationRendererWithFilteredAttributes
+import org.jetbrains.kotlin.fir.renderer.FirPackageDirectiveRenderer
+import org.jetbrains.kotlin.fir.renderer.FirRenderer
+import org.jetbrains.kotlin.fir.renderer.FirResolvePhaseRenderer
 import org.jetbrains.kotlin.fir.types.FirResolvedTypeRef
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.name.StandardClassIds
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.KtElement
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtOperationReferenceExpression
@@ -196,7 +200,8 @@ private fun FirElement?.renderContainerSource(): String =
     (this as? FirCallableDeclaration)?.containerSource?.let { "${it::class.simpleName} ${it.presentableString}" } ?: "null"
 
 abstract class AbstractSourceGetOrBuildFirTest : AbstractGetOrBuildFirTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractInterruptingGetOrBuildFirTest : AbstractGetOrBuildFirTest() {
@@ -227,7 +232,8 @@ abstract class AbstractInterruptingGetOrBuildFirTest : AbstractGetOrBuildFirTest
 }
 
 abstract class AbstractInterruptingSourceGetOrBuildFirTest : AbstractInterruptingGetOrBuildFirTest() {
-    override val configurator = object : AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false) {
+    override val configurator = object :
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform) {
         override val serviceRegistrars: List<AnalysisApiServiceRegistrar<TestServices>>
             get() = super.serviceRegistrars + listOf(ErrorResistanceServiceRegistrar)
     }
@@ -238,11 +244,13 @@ abstract class AbstractOutOfContentRootGetOrBuildFirTest : AbstractGetOrBuildFir
 }
 
 abstract class AbstractScriptGetOrBuildFirTest : AbstractGetOrBuildFirTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractInterruptingScriptGetOrBuildFirTest : AbstractInterruptingGetOrBuildFirTest() {
-    override val configurator = object : AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false) {
+    override val configurator = object :
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform) {
         override val serviceRegistrars: List<AnalysisApiServiceRegistrar<TestServices>>
             get() = super.serviceRegistrars + listOf(ErrorResistanceServiceRegistrar)
     }

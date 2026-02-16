@@ -27,6 +27,7 @@ import org.jetbrains.kotlin.fir.scopes.FirScopeProvider
 import org.jetbrains.kotlin.fir.scopes.FirTypeScope
 import org.jetbrains.kotlin.fir.session.FirSessionFactoryHelper
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.findDescendantOfType
 import org.jetbrains.kotlin.test.InTextDirectivesUtils
@@ -159,7 +160,8 @@ abstract class AbstractPartialRawFirBuilderTestCase : AbstractAnalysisApiBasedTe
 }
 
 abstract class AbstractSourcePartialRawFirBuilderTestCase : AbstractPartialRawFirBuilderTestCase() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractOutOfContentRootPartialRawFirBuilderTestCase : AbstractPartialRawFirBuilderTestCase() {

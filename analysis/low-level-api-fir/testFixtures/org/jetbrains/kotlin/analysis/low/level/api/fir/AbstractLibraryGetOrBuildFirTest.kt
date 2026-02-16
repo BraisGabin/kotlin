@@ -25,7 +25,8 @@ import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
 import org.jetbrains.kotlin.test.services.*
 
 abstract class AbstractLibraryGetOrBuildFirTest : AbstractAnalysisApiBasedTest() {
-    override val configurator get() = AnalysisApiFirLibraryBinaryDecompiledTestConfigurator
+    override val configurator
+        get() = AnalysisApiFirLibraryBinaryDecompiledTestConfigurator(defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 
     override fun configureTest(builder: TestConfigurationBuilder) {
         val renderingOptionsBuilder = FirRenderingOptions.Builder().apply { renderKtText = true }

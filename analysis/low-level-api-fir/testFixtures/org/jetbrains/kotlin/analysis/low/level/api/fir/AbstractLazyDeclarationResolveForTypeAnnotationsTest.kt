@@ -8,13 +8,15 @@ package org.jetbrains.kotlin.analysis.low.level.api.fir
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirOutOfContentRootTestConfigurator
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirScriptTestConfigurator
 import org.jetbrains.kotlin.analysis.low.level.api.fir.test.configurators.AnalysisApiFirSourceTestConfigurator
+import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 
 abstract class AbstractLazyDeclarationResolveForTypeAnnotationsTest : AbstractFirLazyDeclarationResolveTest() {
     override val outputExtension: String get() = ".lazyResolve.txt"
 }
 
 abstract class AbstractSourceLazyDeclarationResolveForTypeAnnotationsTest : AbstractLazyDeclarationResolveForTypeAnnotationsTest() {
-    override val configurator = AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirSourceTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
 
 abstract class AbstractOutOfContentRootLazyDeclarationResolveForTypeAnnotationsTest :
@@ -23,5 +25,6 @@ abstract class AbstractOutOfContentRootLazyDeclarationResolveForTypeAnnotationsT
 }
 
 abstract class AbstractScriptLazyDeclarationResolveForTypeAnnotationsTest : AbstractLazyDeclarationResolveForTypeAnnotationsTest() {
-    override val configurator = AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false)
+    override val configurator =
+        AnalysisApiFirScriptTestConfigurator(analyseInDependentSession = false, defaultTargetPlatform = JvmPlatforms.defaultJvmPlatform)
 }
