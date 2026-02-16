@@ -15,8 +15,10 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.apple.ModuleMapGenerator
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.SerializationTools
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftexport.internal.GradleSwiftExportModule
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftexport.internal.GradleSwiftExportModules
+import org.jetbrains.kotlin.gradle.utils.CommaSeparatedEntriesBuilder
 import org.jetbrains.kotlin.gradle.utils.StringBlockBuilder
 import org.jetbrains.kotlin.gradle.utils.buildStringBlock
+import org.jetbrains.kotlin.gradle.utils.commaSeparatedEntries
 import org.jetbrains.kotlin.gradle.utils.getFile
 import org.jetbrains.kotlin.incremental.createDirectory
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -166,16 +168,26 @@ internal object SPMManifestGenerator {
         line()
         line("import PackageDescription")
         block("let package = Package(", ")") {
-            line("name: \"$swiftApiModule\",")
-            block("products: [", "],") {
-                block(".library(", ")") {
-                    line("name: \"$swiftLibrary\",")
-                    line("targets: [${modules.productTargets().joinToString(", ")}]")
+            commaSeparatedEntries {
+                entry { line("name: \"$swiftApiModule\"") }
+                entry {
+                    block("products: [", "]") {
+                        block(".library(", ")") {
+                            commaSeparatedEntries {
+                                entry { line("name: \"$swiftLibrary\"") }
+                                entry { line("targets: [${modules.productTargets().joinToString(", ")}]") }
+                            }
+                        }
+                    }
                 }
-            }
-            block("targets: [", "]") {
-                emitTargetDefinitions(modules, kotlinRuntime)
-                emitTarget(kotlinRuntime)
+                entry {
+                    block("targets: [", "]") {
+                        commaSeparatedEntries {
+                            emitTargetDefinitions(modules, kotlinRuntime)
+                            entry { emitTarget(kotlinRuntime) }
+                        }
+                    }
+                }
             }
         }
     }
@@ -194,28 +206,25 @@ internal object SPMManifestGenerator {
     private fun StringBlockBuilder.emitTarget(
         name: String,
         dependencies: List<String>? = null,
-        trailingComma: Boolean = false,
     ) {
-        val close = if (trailingComma) ")," else ")"
-        block(".target(", close) {
-            if (dependencies != null) {
-                line("name: \"$name\",")
-                line("dependencies: [${dependencies.joinToString(", ") { "\"$it\"" }}]")
-            } else {
-                line("name: \"$name\"")
+        block(".target(", ")") {
+            commaSeparatedEntries {
+                entry { line("name: \"$name\"") }
+                if (dependencies != null) {
+                    entry { line("dependencies: [${dependencies.joinToString(", ") { "\"$it\"" }}]") }
+                }
             }
         }
     }
 
-    private fun StringBlockBuilder.emitTargetDefinitions(
+    private fun CommaSeparatedEntriesBuilder.emitTargetDefinitions(
         modules: List<GradleSwiftExportModule>,
         kotlinRuntime: String,
     ) {
         modules.forEach { module ->
-            // Every module target and bridge target needs trailing comma since KotlinRuntime is always last
-            emitTarget(module.name, module.spmDependencies(kotlinRuntime), trailingComma = true)
+            entry { emitTarget(module.name, module.spmDependencies(kotlinRuntime)) }
             if (module is GradleSwiftExportModule.BridgesToKotlin) {
-                emitTarget(module.bridgeName, trailingComma = true)
+                entry { emitTarget(module.bridgeName) }
             }
         }
     }
