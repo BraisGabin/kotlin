@@ -15,6 +15,8 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.apple.ModuleMapGenerator
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.SerializationTools
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftexport.internal.GradleSwiftExportModule
 import org.jetbrains.kotlin.gradle.plugin.mpp.apple.swiftexport.internal.GradleSwiftExportModules
+import org.jetbrains.kotlin.gradle.utils.StringBlockBuilder
+import org.jetbrains.kotlin.gradle.utils.buildStringBlock
 import org.jetbrains.kotlin.gradle.utils.getFile
 import org.jetbrains.kotlin.incremental.createDirectory
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -159,26 +161,24 @@ internal object SPMManifestGenerator {
         swiftLibrary: String,
         kotlinRuntime: String,
         modules: List<GradleSwiftExportModule>,
-    ) = """
-        // swift-tools-version: 5.9
-        
-        import PackageDescription
-        let package = Package(
-            name: "$swiftApiModule",
-            products: [
-                .library(
-                    name: "$swiftLibrary",
-                    targets: [${modules.productTargets().joinToString(", ")}]
-                ),
-            ],
-            targets: [
-                ${modules.targetDefinitions(kotlinRuntime).joinToString("\n                ")}
-                .target(
-                    name: "$kotlinRuntime"
-                )
-            ]
-        )
-        """.trimIndent()
+    ): String = buildStringBlock {
+        line("// swift-tools-version: 5.9")
+        line()
+        line("import PackageDescription")
+        block("let package = Package(", ")") {
+            line("name: \"$swiftApiModule\",")
+            block("products: [", "],") {
+                block(".library(", ")") {
+                    line("name: \"$swiftLibrary\",")
+                    line("targets: [${modules.productTargets().joinToString(", ")}]")
+                }
+            }
+            block("targets: [", "]") {
+                emitTargetDefinitions(modules, kotlinRuntime)
+                emitTarget(kotlinRuntime)
+            }
+        }
+    }
 
     private fun GradleSwiftExportModule.spmDependencies(kotlinRuntime: String): List<String> {
         return when (this) {
@@ -191,28 +191,32 @@ internal object SPMManifestGenerator {
         return this.map { "\"${it.name}\"" }
     }
 
-    private fun List<GradleSwiftExportModule>.targetDefinitions(kotlinRuntime: String): List<String> {
-
-        fun bridgeTarget(bridgeName: String) =
-            """
-                .target(
-                    name: "$bridgeName"
-                ),
-        """.trim()
-
-        return this.map { module ->
-            """
-                .target(
-                    name: "${module.name}",
-                    dependencies: [${module.spmDependencies(kotlinRuntime).joinToString(", ") { "\"$it\"" }}]
-                ),
-                ${
-                when (module) {
-                    is GradleSwiftExportModule.BridgesToKotlin -> bridgeTarget(module.bridgeName)
-                    else -> ""
-                }
+    private fun StringBlockBuilder.emitTarget(
+        name: String,
+        dependencies: List<String>? = null,
+        trailingComma: Boolean = false,
+    ) {
+        val close = if (trailingComma) ")," else ")"
+        block(".target(", close) {
+            if (dependencies != null) {
+                line("name: \"$name\",")
+                line("dependencies: [${dependencies.joinToString(", ") { "\"$it\"" }}]")
+            } else {
+                line("name: \"$name\"")
             }
-        """.trim()
+        }
+    }
+
+    private fun StringBlockBuilder.emitTargetDefinitions(
+        modules: List<GradleSwiftExportModule>,
+        kotlinRuntime: String,
+    ) {
+        modules.forEach { module ->
+            // Every module target and bridge target needs trailing comma since KotlinRuntime is always last
+            emitTarget(module.name, module.spmDependencies(kotlinRuntime), trailingComma = true)
+            if (module is GradleSwiftExportModule.BridgesToKotlin) {
+                emitTarget(module.bridgeName, trailingComma = true)
+            }
         }
     }
 }
