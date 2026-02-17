@@ -12,7 +12,6 @@ plugins {
     kotlin("plugin.serialization")
     id("android-sdk-provisioner")
     id("gradle-plugin-published-compiler-dependency-configuration") // the test compilation's output is injected into test project's build classpath for the buildscript injection
-    id("org.jetbrains.kotlinx.kover") version "0.9.4"
 }
 
 testsJar()
@@ -30,8 +29,8 @@ val koverCli: Configuration by configurations.creating {
 }
 
 dependencies {
-    koverAgent("org.jetbrains.kotlinx:kover-jvm-agent:0.9.4")
-    koverCli("org.jetbrains.kotlinx:kover-cli:0.9.4")
+    koverAgent("org.jetbrains.kotlinx:kover-jvm-agent:0.9.7")
+    koverCli("org.jetbrains.kotlinx:kover-cli:0.9.7")
 }
 
 kotlin {
