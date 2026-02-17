@@ -130,9 +130,10 @@ enum class BooleanMetrics(val type: BooleanOverridePolicy, val anonymization: Bo
     KOTLINX_SERIALIZATION_GRADLE_PLUGIN_ENABLED(OR, SAFE),
     KOTLINX_ATOMICFU_GRADLE_PLUGIN_ENABLED(OR, SAFE),
     KOTLINX_BINARY_COMPATIBILITY_GRADLE_PLUGIN_ENABLED(OR, SAFE),
+    NPM_PUBLISH_PLUGIN_ENABLED(OR, SAFE),
     ;
 
     companion object {
-        const val VERSION = 25
+        const val VERSION = 26
     }
 }
