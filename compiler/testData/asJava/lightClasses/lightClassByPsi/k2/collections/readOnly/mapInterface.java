@@ -110,13 +110,13 @@ public class CMap3 /* test.CMap3*/<KElem, VElem>  implements test.IMap<KElem, VE
   public VElem get(java.lang.Object);//  get(java.lang.Object)
 
   @java.lang.Override()
-  public VElem getOrDefault(KElem, VElem);//  getOrDefault(KElem, VElem)
-
-  @java.lang.Override()
   public VElem put(KElem, VElem);//  put(KElem, VElem)
 
   @java.lang.Override()
   public VElem remove(java.lang.Object);//  remove(java.lang.Object)
+
+  @java.lang.Override()
+  public abstract VElem getOrDefault(java.lang.Object, VElem);//  getOrDefault(java.lang.Object, VElem)
 
   @java.lang.Override()
   public boolean containsKey(java.lang.Object);//  containsKey(java.lang.Object)

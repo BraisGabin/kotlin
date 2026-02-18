@@ -120,10 +120,6 @@ public class TAMap3 /* test.TAMap3*/<T>  implements java.util.Map<T, @org.jetbra
   public @org.jetbrains.annotations.NotNull() java.util.Set<T> getKeys();//  getKeys()
 
   @java.lang.Override()
-  @org.jetbrains.annotations.NotNull()
-  public @org.jetbrains.annotations.NotNull() test.A getOrDefault(T, @org.jetbrains.annotations.NotNull() @org.jetbrains.annotations.NotNull() test.A);//  getOrDefault(T, @org.jetbrains.annotations.NotNull() test.A)
-
-  @java.lang.Override()
   public @org.jetbrains.annotations.NotNull() test.A get(java.lang.Object);//  get(java.lang.Object)
 
   @java.lang.Override()
@@ -131,6 +127,9 @@ public class TAMap3 /* test.TAMap3*/<T>  implements java.util.Map<T, @org.jetbra
 
   @java.lang.Override()
   public @org.jetbrains.annotations.NotNull() test.A remove(java.lang.Object);//  remove(java.lang.Object)
+
+  @java.lang.Override()
+  public abstract @org.jetbrains.annotations.NotNull() test.A getOrDefault(java.lang.Object, @org.jetbrains.annotations.NotNull() test.A);//  getOrDefault(java.lang.Object, @org.jetbrains.annotations.NotNull() test.A)
 
   @java.lang.Override()
   public boolean containsKey(java.lang.Object);//  containsKey(java.lang.Object)

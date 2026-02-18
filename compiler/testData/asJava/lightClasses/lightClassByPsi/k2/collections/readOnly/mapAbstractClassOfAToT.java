@@ -134,13 +134,13 @@ public class ATMap3 /* test.ATMap3*/<T>  implements java.util.Map<@org.jetbrains
   public @org.jetbrains.annotations.Nullable() T get(@org.jetbrains.annotations.NotNull() @org.jetbrains.annotations.NotNull() test.A);//  get(@org.jetbrains.annotations.NotNull() test.A)
 
   @java.lang.Override()
-  public T getOrDefault(@org.jetbrains.annotations.NotNull() @org.jetbrains.annotations.NotNull() test.A, T);//  getOrDefault(@org.jetbrains.annotations.NotNull() test.A, T)
-
-  @java.lang.Override()
   public T put(@org.jetbrains.annotations.NotNull() test.A, T);//  put(@org.jetbrains.annotations.NotNull() test.A, T)
 
   @java.lang.Override()
   public T remove(java.lang.Object);//  remove(java.lang.Object)
+
+  @java.lang.Override()
+  public abstract T getOrDefault(java.lang.Object, T);//  getOrDefault(java.lang.Object, T)
 
   @java.lang.Override()
   public boolean containsKey(@org.jetbrains.annotations.NotNull() @org.jetbrains.annotations.NotNull() test.A);//  containsKey(@org.jetbrains.annotations.NotNull() test.A)
