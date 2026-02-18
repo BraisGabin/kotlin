@@ -297,12 +297,12 @@ private fun KaSession.generateJavaCollectionMethodStubs(
     val kotlinNames = kotlinCollectionSymbol.memberScope.callables
         .filter { it is KaNamedFunctionSymbol }
         // skip default methods in Java collection
-        .filter { it.origin != KaSymbolOrigin.JAVA_SOURCE && it.origin != KaSymbolOrigin.JAVA_LIBRARY }
+        //.filter { it.origin != KaSymbolOrigin.JAVA_SOURCE && it.origin != KaSymbolOrigin.JAVA_LIBRARY }
         .mapNotNull { it.name?.asString() }
         .toSet()
 
     val javaMethods = javaCollectionPsiClass.methods
-        .filterNot { it.hasModifierProperty(PsiModifier.DEFAULT) }
+//        .filterNot { it.hasModifierProperty(PsiModifier.DEFAULT) }
 
     val candidateMethods = javaMethods.flatMap { method ->
         createWrappersForJavaCollectionMethod(containingClass, method, javaCollectionPsiClass, kotlinNames, substitutor)
@@ -426,6 +426,11 @@ private fun createJavaUtilMapMethodWithSpecialSignature(
             if (k.isTypeParameter()) return null
             MethodSignature(parameterTypes = listOf(k), returnType = v)
         }
+
+        "getOrDefault" -> {
+            if (k.isTypeParameter() || v.isTypeParameter()) return null
+            MethodSignature(parameterTypes = listOf(k, v), returnType = v)
+        }
         else -> null
     } ?: return null
 
@@ -480,7 +485,7 @@ private fun KaSession.tryToMapKotlinCollectionMethodToJavaMethod(
     val javaClass = when (name) {
         "contains", "containsAll", "removeAll", "retainAll" -> getJavaCollectionClass(allSupertypes)
         "indexOf", "lastIndexOf" -> getJavaListClass(allSupertypes)
-        "get", "containsKey", "containsValue", "putAll" -> getJavaMapClass(allSupertypes)
+        "get", "containsKey", "containsValue", "getOrDefault", "putAll" -> getJavaMapClass(allSupertypes)
         "remove" -> {
             if (kotlinCollectionFunction.callableId?.classId == StandardClassIds.MutableMap) {
                 getJavaMapClass(allSupertypes)
