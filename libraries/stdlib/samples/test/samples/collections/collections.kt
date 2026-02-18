@@ -855,13 +855,13 @@ class Collections {
             val numbers = listOf(1, 2, 3)
             assertPrints(numbers.joinTo(sb, prefix = "[", postfix = "]").toString(), "An existing string and a list: [1, 2, 3]")
 
-            // Empty receiver: only prefix and postfix are appended
-            val emptyJoined = StringBuilder()
-            assertPrints(emptyList<Int>().joinTo(emptyJoined, prefix = "[", postfix = "]").toString(), "[]")
-
             val lotOfNumbers: Iterable<Int> = 1..100
             val firstNumbers = StringBuilder("First five numbers: ")
             assertPrints(lotOfNumbers.joinTo(firstNumbers, limit = 5).toString(), "First five numbers: 1, 2, 3, 4, 5, ...")
+
+            // If the receiver is empty, the result only contains prefix and postfix
+            assertTrue(emptyList<Int>().joinTo(StringBuilder()).toString().isEmpty())
+            assertPrints(emptyList<Int>().joinTo(StringBuilder(), prefix = "[", postfix = "]").toString(), "[]")
         }
 
         @Sample
@@ -871,12 +871,12 @@ class Collections {
             assertPrints(numbers.joinToString(prefix = "[", postfix = "]"), "[1, 2, 3, 4, 5, 6]")
             assertPrints(numbers.joinToString(prefix = "<", postfix = ">", separator = "•"), "<1•2•3•4•5•6>")
 
-            // Empty receiver: returns prefix + postfix, which is an empty string by default
-            assertPrints(emptyList<Int>().joinToString(), "")
-            assertPrints(emptyList<Int>().joinToString(prefix = "[", postfix = "]"), "[]")
-
             val chars = charArrayOf('a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q')
             assertPrints(chars.joinToString(limit = 5, truncated = "...!") { it.uppercaseChar().toString() }, "A, B, C, D, E, ...!")
+
+            // If the receiver is empty, the result only contains prefix and postfix
+            assertTrue(emptyList<Int>().joinToString().isEmpty())
+            assertPrints(emptyList<Int>().joinToString(prefix = "[", postfix = "]"), "[]")
         }
 
         @Sample
