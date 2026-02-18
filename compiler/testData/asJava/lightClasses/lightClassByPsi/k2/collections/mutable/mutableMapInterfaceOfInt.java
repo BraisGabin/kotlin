@@ -181,6 +181,9 @@ public class CMutableMap3 /* test.CMutableMap3*/ implements test.IMutableMap {
   public final java.util.Set<java.util.Map.Entry<@org.jetbrains.annotations.NotNull() java.lang.Integer, @org.jetbrains.annotations.NotNull() java.lang.Integer>> entrySet();//  entrySet()
 
   @java.lang.Override()
+  public int getOrDefault(int, int);//  getOrDefault(int, int)
+
+  @java.lang.Override()
   public int getSize();//  getSize()
 
   @java.lang.Override()

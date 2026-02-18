@@ -1,4 +1,5 @@
 // WITH_STDLIB
+// LIBRARY_PLATFORMS: JVM
 package test
 
 interface IMap : Map<Int, Int>
@@ -30,6 +31,10 @@ open class CMap3 : IMap {
     }
 
     override fun isEmpty(): Boolean {
+        TODO("Not yet implemented")
+    }
+
+    override fun getOrDefault(key: Int, defaultValue: Int): Int {
         TODO("Not yet implemented")
     }
 }

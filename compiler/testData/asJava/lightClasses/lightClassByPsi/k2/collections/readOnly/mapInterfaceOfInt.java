@@ -175,6 +175,9 @@ public class CMap3 /* test.CMap3*/ implements test.IMap {
   public final java.util.Set<java.util.Map.Entry<@org.jetbrains.annotations.NotNull() java.lang.Integer, @org.jetbrains.annotations.NotNull() java.lang.Integer>> entrySet();//  entrySet()
 
   @java.lang.Override()
+  public int getOrDefault(int, int);//  getOrDefault(int, int)
+
+  @java.lang.Override()
   public int getSize();//  getSize()
 
   @java.lang.Override()

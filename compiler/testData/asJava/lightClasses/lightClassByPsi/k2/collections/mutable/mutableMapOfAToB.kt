@@ -1,4 +1,5 @@
 // WITH_STDLIB
+// LIBRARY_PLATFORMS: JVM
 package test
 
 class A
@@ -47,6 +48,10 @@ open class ABMutableMap3 : MutableMap<A, B> {
     }
 
     override fun get(key: A): B? {
+        TODO("Not yet implemented")
+    }
+
+    override fun getOrDefault(key: A, defaultValue: B): B {
         TODO("Not yet implemented")
     }
 }

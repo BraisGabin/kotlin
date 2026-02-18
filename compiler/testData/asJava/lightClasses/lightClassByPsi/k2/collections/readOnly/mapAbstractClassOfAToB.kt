@@ -1,4 +1,5 @@
 // WITH_STDLIB
+// LIBRARY_PLATFORMS: JVM
 package test
 
 class A
@@ -33,6 +34,10 @@ open class ABMap3 : Map<A, B> {
         get() = TODO("Not yet implemented")
     override val values: Collection<B>
         get() = TODO("Not yet implemented")
+
+    override fun getOrDefault(key: A, defaultValue: B): B {
+        TODO("Not yet implemented")
+    }
 }
 
 // LIGHT_ELEMENTS_NO_DECLARATION: ABMap.class[clear;compute;computeIfAbsent;computeIfPresent;containsKey;containsKey;containsValue;containsValue;entrySet;get;get;getEntries;getKeys;getSize;getValues;keySet;merge;put;putAll;putIfAbsent;remove;remove;replace;replace;replaceAll;size;values], ABMap2.class[clear;compute;computeIfAbsent;computeIfPresent;entrySet;keySet;merge;put;putAll;putIfAbsent;remove;remove;replace;replace;replaceAll;size;values], ABMap3.class[clear;compute;computeIfAbsent;computeIfPresent;entrySet;keySet;merge;put;putAll;putIfAbsent;remove;remove;replace;replace;replaceAll;size;values]
