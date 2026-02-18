@@ -239,7 +239,8 @@ include ":benchmarks",
         ":dependencies:bootstrap:kotlin-reflect-bootstrap",
         ":dependencies:bootstrap:kotlin-tooling-core-bootstrap",
         ":dependencies:bootstrap:kotlin-compiler-embeddable-bootstrap",
-        ":dependencies:bootstrap:kotlin-compiler-runner-bootstrap"
+        ":dependencies:bootstrap:kotlin-compiler-runner-bootstrap",
+        ":dependencies:kotlin-build-tools-apis:kotlin-build-tools-api-last"
 
 include ":kotlin-allopen-compiler-plugin",
         ":kotlin-allopen-compiler-plugin.embeddable",
@@ -541,6 +542,7 @@ include ":compiler:build-tools:kotlin-build-tools-api",
         ":compiler:build-tools:kotlin-build-tools-impl",
         ":compiler:build-tools:kotlin-build-tools-compat",
         ":compiler:build-tools:kotlin-build-tools-api-tests",
+        ":compiler:build-tools:kotlin-build-tools-api-compatibility-tests",
         ":compiler:build-tools:kotlin-build-tools-jdk-utils",
         ":compiler:build-tools:kotlin-build-tools-options-generator",
         ":compiler:build-tools:util-kotlinpoet",
