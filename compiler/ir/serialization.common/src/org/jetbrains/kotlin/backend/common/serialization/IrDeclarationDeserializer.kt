@@ -23,7 +23,10 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.UNDEFINED_OFFSET
 import org.jetbrains.kotlin.ir.declarations.*
 import org.jetbrains.kotlin.ir.declarations.impl.IrVariableImpl
-import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.IrAnnotation
+import org.jetbrains.kotlin.ir.expressions.IrBlockBody
+import org.jetbrains.kotlin.ir.expressions.IrBody
+import org.jetbrains.kotlin.ir.expressions.IrExpressionBody
 import org.jetbrains.kotlin.ir.expressions.impl.IrCompositeImpl
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
@@ -31,8 +34,10 @@ import org.jetbrains.kotlin.ir.types.impl.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.name.Name
 import org.jetbrains.kotlin.types.Variance
-import org.jetbrains.kotlin.utils.*
+import org.jetbrains.kotlin.utils.compactIfPossible
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
+import org.jetbrains.kotlin.utils.memoryOptimizedMapIndexed
+import org.jetbrains.kotlin.utils.memoryOptimizedZip
 import kotlin.reflect.full.declaredMemberProperties
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnnotation as ProtoAnnotation
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnonymousInit as ProtoAnonymousInit
@@ -104,11 +109,20 @@ class IrDeclarationDeserializer(
         return makeTypeProjection(deserializeIrType(encoding.typeIndex), encoding.variance)
     }
 
-    internal fun deserializeCoordinates(rawCoordinates: Long, parentStart: Int?): KtOffsetsOnlySourceElement {
+    internal fun deserializeCoordinates(hasGlocalCoordinates: Boolean, rawGlobalCoordinates: Long, rawLocalCoordinates: Long, parentStart: Int?): KtOffsetsOnlySourceElement {
         if (isDeserializingIrType) {
             return KtOffsetsOnlySourceElement(UNDEFINED_OFFSET, UNDEFINED_OFFSET)
+        }
+
+        if (hasGlocalCoordinates) {
+            return BinaryCoordinatesEncoding.decode(rawGlobalCoordinates, usesZigZag = false)
+        }
+
+        if (parentStart != null) {
+            val localCoordinates = BinaryCoordinatesEncoding.decode(rawLocalCoordinates, usesZigZag = true)
+            return KtOffsetsOnlySourceElement(localCoordinates.startOffset + parentStart, localCoordinates.endOffset + parentStart)
         } else {
-            return BinaryCoordinatesEncoding.decode(rawCoordinates)
+            return KtOffsetsOnlySourceElement(UNDEFINED_OFFSET, UNDEFINED_OFFSET)
         }
     }
 
@@ -227,7 +241,9 @@ class IrDeclarationDeserializer(
         block: (IrSymbol, IdSignature, Int, Int, IrDeclarationOrigin, Long) -> T,
     ): T where T : IrDeclaration, T : IrSymbolOwner {
         val (s, uid) = symbolDeserializer.deserializeSymbolToDeclareInCurrentFile(proto.symbol)
-        val coords = deserializeCoordinates(proto.globalCoordinates, parentStart)
+        val coords = deserializeCoordinates(
+            proto.hasGlobalCoordinates(), proto.globalCoordinates, proto.localCoordinates, parentStart
+        )
         val result = block(
             s,
             uid,
@@ -251,7 +267,9 @@ class IrDeclarationDeserializer(
     ): IrTypeParameter {
 
         val name = deserializeName(proto.name)
-        val coords = deserializeCoordinates(proto.base.globalCoordinates, parentStart)
+        val coords = deserializeCoordinates(
+            proto.base.hasGlobalCoordinates(), proto.base.globalCoordinates, proto.base.localCoordinates, parentStart
+        )
         val flags = TypeParameterFlags.decode(proto.base.flags)
 
         val signature: IdSignature = symbolDeserializer.deserializeIdSignature(

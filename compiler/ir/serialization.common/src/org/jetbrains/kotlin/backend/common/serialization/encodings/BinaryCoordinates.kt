@@ -6,16 +6,29 @@
 package org.jetbrains.kotlin.backend.common.serialization.encodings
 
 import org.jetbrains.kotlin.KtOffsetsOnlySourceElement
+import org.jetbrains.kotlin.protobuf.CodedInputStream
+import org.jetbrains.kotlin.protobuf.CodedOutputStream
 
 object BinaryCoordinatesEncoding {
-    fun encode(startOffset: Int, endOffset: Int): Long {
+    fun encode(startOffset: Int, endOffset: Int, useZigZag: Boolean): Long {
         assert(startOffset <= endOffset)
-        return BinaryLattice.encode(startOffset, endOffset - startOffset)
+
+        var start = startOffset
+        if (useZigZag) {
+            // Zig-zag encoding converts most negative integers into positive ones, at the cost of 1 bit.
+            // While negative numbers are not that frequent, they require 10 bytes to serialize in the var-int-64 encoding
+            // used later in Protobuf.
+            start = CodedOutputStream.encodeZigZag32(start)
+        }
+        return BinaryLattice.encode(start, endOffset - startOffset)
     }
 
-    fun decode(code: Long): KtOffsetsOnlySourceElement {
+    fun decode(code: Long, usesZigZag: Boolean): KtOffsetsOnlySourceElement {
         val decoded = BinaryLattice.decode(code)
-        val start = decoded.first
+        var start = decoded.first
+        if (usesZigZag) {
+            start = CodedInputStream.decodeZigZag32(start)
+        }
         return KtOffsetsOnlySourceElement(start, start + decoded.second)
     }
 }

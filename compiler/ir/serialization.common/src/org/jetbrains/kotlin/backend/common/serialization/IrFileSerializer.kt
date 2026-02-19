@@ -81,6 +81,7 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrLocalDelegatedP
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrLocalDelegatedPropertyReference as ProtoLocalDelegatedPropertyReference
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrMissingExpression as ProtoMissingExpression
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrMultiFieldValueClassRepresentation as ProtoIrMultiFieldValueClassRepresentation
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperationPre_2_4_0 as ProtoOperationPre_2_4_0
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrProperty as ProtoProperty
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrPropertyReference as ProtoPropertyReference
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrReturn as ProtoReturn
@@ -111,7 +112,6 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrWhile as ProtoW
 import org.jetbrains.kotlin.backend.common.serialization.proto.Loop as ProtoLoop
 import org.jetbrains.kotlin.backend.common.serialization.proto.MemberAccessCommonPre_2_4_0 as ProtoMemberAccessCommonPre_2_4_0
 import org.jetbrains.kotlin.backend.common.serialization.proto.NullableIrExpression as ProtoNullableIrExpression
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperationPre_2_4_0 as ProtoOperationPre_2_4_0
 
 open class IrFileSerializer(
     protected val settings: IrSerializationSettings,
@@ -231,15 +231,27 @@ open class IrFileSerializer(
         saveOriginIndex(originIndex)
     }
 
-    private fun serializeCoordinates(start: Int, end: Int): Long {
+    private enum class IrCoordinatesKind {
+        // Coordinates are encoded as absolute offset in the containing source file.
+        Global,
+        // Coordinates are encoded relatively to the parent IR element.
+        // Here, "parent" means the physical parent node in the IR tree structure. In case of declarations, it may be different than the
+        // higher-level notion of IrDeclaration.parent.
+        Local,
+    }
+
+    private fun serializeCoordinates(start: Int, end: Int, parent: IrElement?): Pair<IrCoordinatesKind, Long> {
+        val kind = if (settings.abiCompatibilityLevel.isAtLeast(KlibAbiCompatibilityLevel.ABI_LEVEL_2_4)) IrCoordinatesKind.Local
+        else IrCoordinatesKind.Global
+
         if (settings.publicAbiOnly && !isInsideInline) {
-            return 0
+            return kind to 0
         }
 
         // As IrType's themselves don't have coordinates and their instances can appear multiple times in the IR tree,
         // it is quite meaningless to store coordinates of anything inside them - namely, type's annotations and their arguments.
         if (isSerializingIrType && settings.abiCompatibilityLevel.isAtLeast(KlibAbiCompatibilityLevel.ABI_LEVEL_2_4)) {
-            return 0
+            return kind to 0
         }
 
         var serStart = start
@@ -260,14 +272,36 @@ open class IrFileSerializer(
             }
         }
 
-        if (serStart == -3 && serEnd == -3) {
-            // Such coordinates should never occur. If they do for some reason, we have to remap them to avoid serializing these
-            // particular values. For why it's important, see the comment on IrExpression.coordinates in a file KotlinIr.proto.
-            serStart = UNDEFINED_OFFSET
-            serEnd = UNDEFINED_OFFSET
+        return when (kind) {
+            IrCoordinatesKind.Local -> {
+                if (parent == null) {
+                    return kind to 0
+                }
+                serStart -= parent.startOffset
+                serEnd -= parent.startOffset
+                kind to BinaryCoordinatesEncoding.encode(serStart, serEnd, useZigZag = true)
+            }
+            IrCoordinatesKind.Global -> {
+                if (serStart == -3 && serEnd == -3) {
+                    // Such coordinates should never occur. If they do for some reason, we have to remap them to avoid serializing these
+                    // particular values. For why it's important, see the comment on IrExpression.coordinates in a file KotlinIr.proto.
+                    serStart = UNDEFINED_OFFSET
+                    serEnd = UNDEFINED_OFFSET
+                }
+                kind to BinaryCoordinatesEncoding.encode(serStart, serEnd, useZigZag = false)
+            }
         }
+    }
 
-        return BinaryCoordinatesEncoding.encode(serStart, serEnd)
+    private inline fun serializeAndSetCoordinates(
+        setGlobalCoordinatesField: (Long) -> Unit, setLocalCoordinatesField: (Long) -> Unit,
+        start: Int, end: Int, parent: IrElement?,
+    ) {
+        val (coordinatesKind, coordinates) = serializeCoordinates(start, end, parent)
+        when (coordinatesKind) {
+            IrCoordinatesKind.Global -> setGlobalCoordinatesField(coordinates)
+            IrCoordinatesKind.Local -> setLocalCoordinatesField(coordinates)
+        }
     }
 
     /* ------- Strings ---------------------------------------------------------- */
@@ -673,7 +707,11 @@ open class IrFileSerializer(
                 memberAccessPre240 = serializeMemberAccessCommonPre2_4_0(annotation)
             }
             serializeIrStatementOrigin(annotation.origin, ::setOriginName)
-            globalCoordinates = serializeCoordinates(annotation.startOffset, annotation.endOffset)
+
+            val (coordinatesKind, coordinates) = serializeCoordinates(annotation.startOffset, annotation.endOffset, parent)
+            if (coordinatesKind == IrCoordinatesKind.Local) {
+                setLocalCoordinates(coordinates)
+            }
         }.build()
 
     private fun serializeFunctionExpression(functionExpression: IrFunctionExpression): ProtoFunctionExpression =
@@ -879,11 +917,14 @@ open class IrFileSerializer(
             .build()
 
     private fun serializeSpreadElement(element: IrSpreadElement, parent: IrVararg): ProtoSpreadElement {
-        val coordinates = serializeCoordinates(element.startOffset, element.endOffset)
-        return ProtoSpreadElement.newBuilder()
-            .setExpression(serializeExpression(element.expression, element))
-            .setGlobalCoordinates(coordinates)
-            .build()
+        val proto = ProtoSpreadElement.newBuilder()
+        serializeAndSetCoordinates(
+            proto::setGlobalCoordinates, proto::setLocalCoordinates,
+            element.startOffset, element.endOffset, parent
+        )
+
+        proto.setExpression(serializeExpression(element.expression, element))
+        return proto.build()
     }
 
     private fun serializeSyntheticBody(expression: IrSyntheticBody) = ProtoSyntheticBody.newBuilder()
@@ -1117,9 +1158,11 @@ open class IrFileSerializer(
     private fun serializeExpression(expression: IrExpression?, parent: IrElement?): ProtoExpression {
         val proto = ProtoExpression.newBuilder()
         if (expression != null) {
-            val coordinates = serializeCoordinates(expression.startOffset, expression.endOffset)
-            proto.setGlobalCoordinates(coordinates)
             proto.setType(serializeIrType(expression.type))
+            serializeAndSetCoordinates(
+                proto::setGlobalCoordinates, proto::setLocalCoordinates,
+                expression.startOffset, expression.endOffset, parent
+            )
         }
 
         if (settings.abiCompatibilityLevel.isAtLeast(KlibAbiCompatibilityLevel.ABI_LEVEL_2_4)) {
@@ -1219,12 +1262,19 @@ open class IrFileSerializer(
     }
 
     private fun serializeStatement(statement: IrElement, parent: IrElement?): ProtoStatement {
-        val coordinates =
-            // Both IrExpression and IrDeclaration have their own coordinate fields, the one on ProtoStatement is ignored for them.
-            if (statement is IrExpression || statement is IrDeclaration) 0
-            else serializeCoordinates(statement.startOffset, statement.endOffset)
         val proto = ProtoStatement.newBuilder()
-            .setGlobalCoordinates(coordinates)
+        if (statement is IrExpression || statement is IrDeclaration) {
+            // Both IrExpression and IrDeclaration have their own coordinate fields, the one on ProtoStatement is ignored for them.
+            if (!settings.abiCompatibilityLevel.isAtLeast(KlibAbiCompatibilityLevel.ABI_LEVEL_2_4)) {
+                // Before 2.4.0 the field was `required`
+                proto.setGlobalCoordinates(0)
+            }
+        } else {
+            serializeAndSetCoordinates(
+                proto::setGlobalCoordinates, proto::setLocalCoordinates,
+                statement.startOffset, statement.endOffset, parent
+            )
+        }
 
         when (statement) {
             is IrDeclaration -> {
@@ -1258,7 +1308,10 @@ open class IrFileSerializer(
     private fun serializeIrDeclarationBase(declaration: IrDeclaration, parent: IrElement?, flags: Long?): ProtoDeclarationBase {
         return with(ProtoDeclarationBase.newBuilder()) {
             symbol = serializeIrSymbol((declaration as IrSymbolOwner).symbol, isDeclared = true)
-            globalCoordinates = serializeCoordinates(declaration.startOffset, declaration.endOffset)
+            serializeAndSetCoordinates(
+                this::setGlobalCoordinates, this::setLocalCoordinates,
+                declaration.startOffset, declaration.endOffset, parent
+            )
             addAllAnnotation(serializeAnnotations(declaration.annotations, declaration))
             flags?.let { setFlags(it) }
             originName = serializeIrDeclarationOrigin(declaration.origin)
