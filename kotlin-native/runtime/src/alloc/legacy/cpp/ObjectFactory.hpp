@@ -55,9 +55,9 @@ public:
 
     public:
         ~Node() {
-            // Avoid recursive destruction of a lonked list
-            while (next_) {
-                next_ = std::move(next_->next_);
+            // Avoid recursive destruction of a linked list
+            while (auto next = std::move(next_)) {
+                next = std::move(next->next_);
             }
         }
 
