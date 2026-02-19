@@ -215,6 +215,12 @@ public class CompiledJvmStubsTestGenerated extends AbstractCompiledJvmStubsTest 
   }
 
   @Test
+  @TestMetadata("companionExtension.kt")
+  public void testCompanionExtension() {
+    run("companionExtension.kt");
+  }
+
+  @Test
   @TestMetadata("complicateLTGT.kt")
   public void testComplicateLTGT() {
     run("complicateLTGT.kt");

@@ -186,6 +186,11 @@ public class ParsingTestGenerated extends AbstractParsingTest {
       runTest("compiler/testData/psi/CommentsBindingInStatementBlock.kt");
     }
 
+    @TestMetadata("companionExtension.kt")
+    public void testCompanionExtension() {
+      runTest("compiler/testData/psi/companionExtension.kt");
+    }
+
     @TestMetadata("complicateLTGT.kt")
     public void testComplicateLTGT() {
       runTest("compiler/testData/psi/complicateLTGT.kt");
