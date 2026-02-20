@@ -406,8 +406,8 @@ internal object ClassFieldsSerializer {
         classFields.forEach {
             idSignatureSerializer.protoIdSignature(it.classSignature)
         }
-        val signatures = IrArrayWriter(protoIdSignatureArray.map { it.toByteArray() }).writeIntoMemory()
-        val signatureStrings = IrStringWriter(protoStringArray).writeIntoMemory()
+        val signatures = IrArrayWriter(protoIdSignatureArray.map { it.toByteArray() }, false).writeIntoMemory()
+        val signatureStrings = IrStringWriter(protoStringArray, false).writeIntoMemory()
         val stringTable = buildStringTable {
             classFields.forEach {
                 +it.file.fqName
@@ -431,7 +431,7 @@ internal object ClassFieldsSerializer {
                 stream.writeInt(field.alignment)
             }
         }
-        return IrArrayWriter(listOf(signatures, signatureStrings, stream.buf)).writeIntoMemory()
+        return IrArrayWriter(listOf(signatures, signatureStrings, stream.buf), false).writeIntoMemory()
     }
 
     fun deserializeTo(data: ByteArray, result: MutableList<SerializedClassFields>) {
