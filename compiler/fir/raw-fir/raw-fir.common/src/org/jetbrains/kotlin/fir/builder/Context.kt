@@ -64,6 +64,8 @@ class Context<T> {
     var containingScriptSymbol: FirScriptSymbol? = null
     var containingReplSymbol: FirReplSnippetSymbol? = null
 
+    var currentCompanionBlockOwnerOrNull: FirBasedSymbol<*>? = null
+
     fun pushFirTypeParameters(isInnerOrLocal: Boolean, parameters: List<FirTypeParameterRef>) {
         capturedTypeParameters.add(StatusFirTypeParameterSymbolList(isInnerOrLocal, parameters.map { it.symbol }))
     }

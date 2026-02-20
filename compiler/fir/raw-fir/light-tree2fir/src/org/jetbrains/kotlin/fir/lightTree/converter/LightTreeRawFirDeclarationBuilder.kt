@@ -955,6 +955,11 @@ class LightTreeRawFirDeclarationBuilder(
                 val initializer = buildFirDestructuringDeclarationInitializer(node)
                 container += buildErrorNonLocalDestructuringDeclaration(node.toFirSourceElement(), initializer)
             }
+            COMPANION_BLOCK -> {
+                withCompanionBlock {
+                    node.getChildNodeByType(CLASS_BODY)?.let { container.addAll(convertClassBody(it, classWrapper)) }
+                }
+            }
         }
     }
 
@@ -1413,6 +1418,7 @@ class LightTreeRawFirDeclarationBuilder(
         } else {
             FirRegularPropertySymbol(callableIdForName(propertyName))
         }
+        val isCompanionBlockMember = isDirectlyInsideCompanionBlock
 
         withContainerSymbol(propertySymbol, isLocal) {
             val propertySource = property.toFirSourceElement()
@@ -1497,7 +1503,9 @@ class LightTreeRawFirDeclarationBuilder(
                         explicitDeclarationSource = propertySource,
                     )
                 } else {
-                    dispatchReceiverType = currentDispatchReceiverType()
+                    if (!isCompanionBlockMember) {
+                        dispatchReceiverType = currentDispatchReceiverType()
+                    }
                     withCapturedTypeParameters(true, propertySource, firTypeParameters) {
                         typeParameters += firTypeParameters
 
@@ -1515,7 +1523,7 @@ class LightTreeRawFirDeclarationBuilder(
                             FirDeclarationStatusImpl(propertyVisibility, null).apply {
                                 isInline = calculatedModifiers.hasInline()
                                 isExternal = calculatedModifiers.hasExternal()
-                                isStatic = calculatedModifiers.hasCompanion()
+                                isStatic = calculatedModifiers.hasCompanion() || isCompanionBlockMember
                             }
 
                         val convertedAccessors = accessors.map {
@@ -1563,7 +1571,7 @@ class LightTreeRawFirDeclarationBuilder(
                             isConst = calculatedModifiers.isConst()
                             isLateInit = calculatedModifiers.hasLateinit()
                             isExternal = calculatedModifiers.hasExternal()
-                            isStatic = calculatedModifiers.hasCompanion()
+                            isStatic = calculatedModifiers.hasCompanion() || isCompanionBlockMember
                         }
 
                         generateAccessorsByDelegate(
@@ -1585,6 +1593,10 @@ class LightTreeRawFirDeclarationBuilder(
             }.also {
                 if (!isLocal) {
                     fillDanglingConstraintsTo(firTypeParameters, typeConstraints, it)
+
+                    if (isCompanionBlockMember) {
+                        it.initContainingClassAttr()
+                    }
                 }
             }
         }
@@ -1735,7 +1747,7 @@ class LightTreeRawFirDeclarationBuilder(
                 isInline = propertyModifiers.hasInline() || calculatedModifiers.hasInline()
                 isExternal = propertyModifiers.hasExternal() || calculatedModifiers.hasExternal()
                 isExpect = propertyModifiers.hasExpect() || calculatedModifiers.hasExpect()
-                isStatic = propertyModifiers.hasCompanion() || calculatedModifiers.hasCompanion()
+                isStatic = propertyModifiers.hasCompanion() || calculatedModifiers.hasCompanion() || isDirectlyInsideCompanionBlock
             }
         val accessorAdditionalAnnotations = propertyAnnotations.filterUseSiteTarget(
             if (isGetter) PROPERTY_GETTER
@@ -1962,6 +1974,7 @@ class LightTreeRawFirDeclarationBuilder(
         } else {
             FirNamedFunctionSymbol(callableIdForName(functionName))
         }
+        val isCompanionBlockMember = isDirectlyInsideCompanionBlock
 
         withContainerSymbol(functionSymbol, isLocal) {
             val target: FirFunctionTarget
@@ -2048,11 +2061,11 @@ class LightTreeRawFirDeclarationBuilder(
                         isTailRec = calculatedModifiers.hasTailrec()
                         isExternal = calculatedModifiers.hasExternal()
                         isSuspend = calculatedModifiers.hasSuspend()
-                        isStatic = calculatedModifiers.hasCompanion()
+                        isStatic = calculatedModifiers.hasCompanion() || isCompanionBlockMember
                     }
 
                     symbol = functionSymbol as FirNamedFunctionSymbol
-                    dispatchReceiverType = runIf(!isLocal) { currentDispatchReceiverType() }
+                    dispatchReceiverType = runIf(!isLocal && !isCompanionBlockMember) { currentDispatchReceiverType() }
                 }
             }
 
@@ -2099,6 +2112,10 @@ class LightTreeRawFirDeclarationBuilder(
             }.build().also {
                 target.bind(it)
                 fillDanglingConstraintsTo(firTypeParameters, typeConstraints, it)
+
+                if (!isLocal && isCompanionBlockMember) {
+                    it.initContainingClassAttr()
+                }
             }
 
             return if (function is FirAnonymousFunction) {

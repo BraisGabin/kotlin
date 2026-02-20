@@ -568,7 +568,8 @@ open class PsiRawFirBuilder(
                     isExpect = property.hasModifier(EXPECT_KEYWORD) ||
                             this@toFirPropertyAccessor?.hasModifier(EXPECT_KEYWORD) == true
                     isStatic = property.hasModifier(COMPANION_KEYWORD) ||
-                            this@toFirPropertyAccessor?.hasModifier(COMPANION_KEYWORD) == true
+                            this@toFirPropertyAccessor?.hasModifier(COMPANION_KEYWORD) == true ||
+                            isDirectlyInsideCompanionBlock
                 }
             val propertyTypeRefToUse = propertyTypeRef.copyWithNewSourceKind(KtFakeSourceElementKind.ImplicitTypeRef)
             return when {
@@ -2005,6 +2006,23 @@ open class PsiRawFirBuilder(
                                     )
                                 )
                             }
+
+                            withCompanionBlock {
+                                for (companionBlock in classOrObject.companionBlocks) {
+                                    for (declaration in companionBlock.declarations) {
+                                        addDeclaration(
+                                            declaration.toFirDeclaration(
+                                                delegatedSuperType,
+                                                delegatedSelfType,
+                                                classOrObject,
+                                                this,
+                                                emptyList()
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+
                             for (danglingModifier in classOrObject.body?.danglingModifierLists ?: emptyList()) {
                                 addDeclaration(
                                     buildErrorNonLocalDeclarationForDanglingModifierList(danglingModifier).apply {
@@ -2165,6 +2183,8 @@ open class PsiRawFirBuilder(
                 FirNamedFunctionSymbol(callableIdForName(function.nameAsSafeName))
             }
 
+            val isCompanionBlockMember = isDirectlyInsideCompanionBlock
+
             withContainerSymbol(functionSymbol, isLocalFunction) {
                 val typeReference = function.typeReference
                 val returnType = if (function.hasBlockBody()) {
@@ -2218,7 +2238,7 @@ open class PsiRawFirBuilder(
                         name = function.nameAsSafeName
                         labelName = context.getLastLabel(function)?.name ?: runIf(!name.isSpecial) { name.identifier }
                         symbol = functionSymbol as FirNamedFunctionSymbol
-                        dispatchReceiverType = runIf(!isLocalFunction) { currentDispatchReceiverType() }
+                        dispatchReceiverType = runIf(!isLocalFunction && !isCompanionBlockMember) { currentDispatchReceiverType() }
                         isLocal = context.inLocalContext
                         status = FirDeclarationStatusImpl(
                             if (isLocalFunction) Visibilities.Local else function.getVisibility(),
@@ -2233,7 +2253,7 @@ open class PsiRawFirBuilder(
                             isTailRec = function.hasModifier(TAILREC_KEYWORD)
                             isExternal = function.hasModifier(EXTERNAL_KEYWORD)
                             isSuspend = function.hasModifier(SUSPEND_KEYWORD)
-                            isStatic = function.hasModifier(COMPANION_KEYWORD)
+                            isStatic = function.hasModifier(COMPANION_KEYWORD) || isCompanionBlockMember
                         }
                     }
                 }
@@ -2278,6 +2298,10 @@ open class PsiRawFirBuilder(
                 }.build().also {
                     bindFunctionTarget(target, it)
                     function.fillDanglingConstraintsTo(it)
+
+                    if (!isLocalFunction && isCompanionBlockMember) {
+                        it.initContainingClassAttr()
+                    }
                 }
 
                 return if (firFunction is FirAnonymousFunction) {
@@ -2521,6 +2545,7 @@ open class PsiRawFirBuilder(
             } else {
                 FirRegularPropertySymbol(callableIdForName(propertyName))
             }
+            val isCompanionBlockMember = isDirectlyInsideCompanionBlock
 
             withContainerSymbol(propertySymbol, isLocal) {
                 val propertyType = typeReference.toFirOrImplicitType()
@@ -2588,7 +2613,9 @@ open class PsiRawFirBuilder(
                         }
                     } else {
                         symbol = propertySymbol
-                        dispatchReceiverType = currentDispatchReceiverType()
+                        if (!isCompanionBlockMember) {
+                            dispatchReceiverType = currentDispatchReceiverType()
+                        }
                         extractTypeParametersTo(this, symbol)
                         withCapturedTypeParameters(true, propertySource, this.typeParameters) {
                             backingField = this@toFirProperty.fieldDeclaration.toFirBackingField(
@@ -2623,7 +2650,7 @@ open class PsiRawFirBuilder(
                                 isConst = hasModifier(CONST_KEYWORD)
                                 isLateInit = hasModifier(LATEINIT_KEYWORD)
                                 isExternal = hasModifier(EXTERNAL_KEYWORD)
-                                isStatic = hasModifier(COMPANION_KEYWORD)
+                                isStatic = hasModifier(COMPANION_KEYWORD) || isCompanionBlockMember
                             }
 
                             if (hasDelegate()) {
@@ -2678,6 +2705,10 @@ open class PsiRawFirBuilder(
                 }.also {
                     if (!isLocal) {
                         fillDanglingConstraintsTo(it)
+
+                        if (isCompanionBlockMember) {
+                            it.initContainingClassAttr()
+                        }
                     }
                 }
             }

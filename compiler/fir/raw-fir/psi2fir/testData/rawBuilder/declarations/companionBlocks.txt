@@ -1,0 +1,34 @@
+FILE: companionBlocks.kt
+    public final? class C : R|kotlin/Any| {
+        public? [ContainingClassKey=C] constructor(): R|C| {
+            super<R|kotlin/Any|>()
+        }
+
+        public? final? static [ContainingClassKey=C] fun foo(): R|kotlin/Unit| {
+        }
+
+        public? final? static [ContainingClassKey=C] val bar: <implicit> = IntegerLiteral(1)
+            public? [ContainingClassKey=C] get(): <implicit>
+
+        public? final? static [ContainingClassKey=C] val baz: <implicit>
+            public? [ContainingClassKey=C] get(): <implicit> {
+                ^ IntegerLiteral(2)
+            }
+
+        public? final? static [ContainingClassKey=C] fun qux(): R|kotlin/Unit| {
+            local final? class Local : R|kotlin/Any| {
+                public? [ContainingClassKey=Local] constructor(): R|<local>/Local| {
+                    super<R|kotlin/Any|>()
+                }
+
+                public? final? fun insideLocal(): R|kotlin/Unit| {
+                }
+
+                public? final? val insideLocalVal: <implicit> = IntegerLiteral(1)
+                    public? [ContainingClassKey=Local] get(): <implicit>
+
+            }
+
+        }
+
+    }

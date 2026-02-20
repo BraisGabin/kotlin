@@ -1,0 +1,17 @@
+FILE: companionBlocks.kt
+    public final? class C : R|kotlin/Any| {
+        public? [ContainingClassKey=C] constructor(): R|C| {
+            LAZY_super<R|kotlin/Any|>
+        }
+
+        public? final? static [ContainingClassKey=C] fun foo(): R|kotlin/Unit| { LAZY_BLOCK }
+
+        public? final? static [ContainingClassKey=C] val bar: <implicit> = LAZY_EXPRESSION
+            public? [ContainingClassKey=C] get(): <implicit>
+
+        public? final? static [ContainingClassKey=C] val baz: <implicit>
+            public? [ContainingClassKey=C] get(): <implicit> { LAZY_BLOCK }
+
+        public? final? static [ContainingClassKey=C] fun qux(): R|kotlin/Unit| { LAZY_BLOCK }
+
+    }
