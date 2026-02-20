@@ -6,26 +6,19 @@
 package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry
-import org.jetbrains.kotlin.descriptors.impl.EmptyPackageFragmentDescriptor
-import org.jetbrains.kotlin.ir.IrFileEntry
 import org.jetbrains.kotlin.ir.declarations.IrDeclaration
 import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
-import org.jetbrains.kotlin.ir.symbols.impl.IrFileSymbolImpl
 import org.jetbrains.kotlin.ir.util.IdSignature
-import org.jetbrains.kotlin.ir.util.NaiveSourceBasedFileEntryImpl
 import org.jetbrains.kotlin.library.components.KlibIrComponent
 import org.jetbrains.kotlin.library.encodings.WobblyTF8
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
+import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry as ProtoFileEntry
 import org.jetbrains.kotlin.backend.common.serialization.proto.IdSignature as ProtoIdSignature
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrConstructorCall as ProtoConstructorCall
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrDeclaration as ProtoDeclaration
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrExpression as ProtoExpression
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrFile as ProtoFile
-import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry as ProtoFileEntry
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrStatement as ProtoStatement
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrType as ProtoType
 
@@ -250,40 +243,11 @@ class IrKlibBytesSource(private val ir: KlibIrComponent, private val fileIndex: 
 fun IrLibraryFile.deserializeFqName(fqn: List<Int>): String =
     fqn.joinToString(".", transform = ::string)
 
-fun IrLibraryFile.createFile(module: IrModuleFragment, fileProto: ProtoFile, irInterner: IrInterningService): IrFile {
-    val fileEntry = deserializeFileEntry(fileEntry(fileProto), irInterner)
-    val fqName = FqName(deserializeFqName(fileProto.fqNameList))
-    val packageFragmentDescriptor = EmptyPackageFragmentDescriptor(module.descriptor, fqName)
-    val symbol = IrFileSymbolImpl(packageFragmentDescriptor)
-    return IrFileImpl(fileEntry, symbol, fqName, module)
-}
-
-internal fun IrLibraryFile.deserializeFileEntry(fileEntryProto: ProtoFileEntry, irInterner: IrInterningService): IrFileEntry {
-    val lineStartOffsets: IntArray
-    if (fileEntryProto.lineStartOffsetDeltaCount > 0) {
-        lineStartOffsets = IntArray(fileEntryProto.lineStartOffsetDeltaCount)
-        var offset = 0
-        for ((index, delta) in fileEntryProto.lineStartOffsetDeltaList.withIndex()) {
-            offset += delta
-            lineStartOffsets[index] = offset
-        }
-    } else {
-        lineStartOffsets = fileEntryProto.lineStartOffsetList.toIntArray()
-    }
-
-    return NaiveSourceBasedFileEntryImpl(
-        name = irInterner.string(deserializeFileEntryName(fileEntryProto)),
-        lineStartOffsets = lineStartOffsets,
-        firstRelevantLineIndex = fileEntryProto.firstRelevantLineIndex
-    )
-}
-
 fun IrLibraryFile.deserializeFileEntryName(fileEntryProto: ProtoFileEntry): String = when {
     fileEntryProto.hasName() -> string(fileEntryProto.name)
     fileEntryProto.hasNameOld() -> fileEntryProto.nameOld
     else -> error("Malformed KLIB: File entry has no name")
 }
-
 
 fun IrLibraryFile.fileEntry(protoFile: ProtoFile): FileEntry =
     if (protoFile.hasFileEntryId())

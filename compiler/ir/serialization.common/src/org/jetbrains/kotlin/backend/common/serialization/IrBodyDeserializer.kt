@@ -6,10 +6,10 @@
 package org.jetbrains.kotlin.backend.common.serialization
 
 import org.jetbrains.kotlin.backend.common.linkage.issues.IrSymbolTypeMismatchException
-import org.jetbrains.kotlin.backend.common.serialization.encodings.*
+import org.jetbrains.kotlin.backend.common.serialization.encodings.BinaryCoordinates
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData.SymbolKind
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData.SymbolKind.*
-import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry
+import org.jetbrains.kotlin.backend.common.serialization.encodings.RichFunctionReferenceFlags
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrConst.ValueCase.*
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrExpression.OperationCase.*
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperationPre_2_4_0.OperationCase.*
@@ -19,20 +19,23 @@ import org.jetbrains.kotlin.descriptors.SourceElement
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
-import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.declarations.IrFactory
+import org.jetbrains.kotlin.ir.declarations.IrValueDeclaration
+import org.jetbrains.kotlin.ir.declarations.createBlockBody
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.*
 import org.jetbrains.kotlin.ir.symbols.*
 import org.jetbrains.kotlin.ir.types.*
-import org.jetbrains.kotlin.ir.types.impl.*
+import org.jetbrains.kotlin.ir.types.impl.IrDelegatedSimpleType
+import org.jetbrains.kotlin.ir.types.impl.IrSimpleTypeBuilder
+import org.jetbrains.kotlin.ir.types.impl.buildSimpleType
+import org.jetbrains.kotlin.ir.types.impl.makeTypeProjection
 import org.jetbrains.kotlin.ir.util.parentAsClass
 import org.jetbrains.kotlin.utils.addToStdlib.assignFrom
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
 import kotlin.reflect.full.declaredMemberProperties
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlock as ProtoBlock
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlock as ProtoReturnableBlock
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrInlinedFunctionBlock as ProtoInlinedFunctionBlock
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBlockBody as ProtoBlockBody
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBranch as ProtoBranch
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrBreak as ProtoBreak
@@ -58,11 +61,15 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrGetEnumValue as
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrGetField as ProtoGetField
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrGetObject as ProtoGetObject
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrGetValue as ProtoGetValue
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrInlinedFunctionBlock as ProtoInlinedFunctionBlock
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrInstanceInitializerCall as ProtoInstanceInitializerCall
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrLocalDelegatedPropertyReference as ProtoLocalDelegatedPropertyReference
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrOperationPre_2_4_0 as ProtoOperationPre2_4_0
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrPropertyReference as ProtoPropertyReference
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrReturn as ProtoReturn
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrReturnableBlock as ProtoReturnableBlock
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrRichFunctionReference as ProtoRichFunctionReference
+import org.jetbrains.kotlin.backend.common.serialization.proto.IrRichPropertyReference as ProtoRichPropertyReference
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrSetField as ProtoSetField
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrSetValue as ProtoSetValue
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrSpreadElement as ProtoSpreadElement
@@ -167,16 +174,6 @@ class IrBodyDeserializer(
         }
     }
 
-    private fun IrLibraryFile.fileEntry(proto: ProtoInlinedFunctionBlock): FileEntry =
-        if (proto.hasInlinedFunctionFileEntryId()) {
-            fileEntry(proto.inlinedFunctionFileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
-        } else {
-            require(proto.hasInlinedFunctionFileEntry()) {
-                "Invalid KLib: either fileEntry or fileEntryId must be present in serialized IrInlinedFunctionBlock"
-            }
-            proto.inlinedFunctionFileEntry
-        }
-
     private fun deserializeInlinedFunctionBlock(
         proto: ProtoInlinedFunctionBlock,
         start: Int,
@@ -186,7 +183,7 @@ class IrBodyDeserializer(
         val inlinedFunctionSymbol = runIf(proto.hasInlinedFunctionSymbol()) {
             deserializeTypedSymbol<IrFunctionSymbol>(proto.inlinedFunctionSymbol, FUNCTION_SYMBOL)
         }
-        val inlinedFunctionFileEntry = libraryFile.deserializeFileEntry(libraryFile.fileEntry(proto), irInterner)
+        val inlinedFunctionFileEntry = fileEntryDeserializer.fileEntry(libraryFile, proto)
         return withDeserializedBlock(proto.base) { origin, statements ->
             IrInlinedFunctionBlockImpl(
                 start, end,
