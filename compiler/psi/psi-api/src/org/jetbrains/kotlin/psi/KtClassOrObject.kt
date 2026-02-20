@@ -139,6 +139,12 @@ abstract class KtClassOrObject :
 
     fun getDeclarationKeyword(): PsiElement? = findChildByType(classInterfaceObjectTokenSet)
 
+    /**
+     * Returns the list of all companion blocks.
+     */
+    val companionBlocks: List<KtCompanionBlock>
+        get() = body?.allCompanionBlocks.orEmpty()
+
     private val classInterfaceObjectTokenSet = TokenSet.create(
         KtTokens.CLASS_KEYWORD, KtTokens.INTERFACE_KEYWORD, KtTokens.OBJECT_KEYWORD
     )

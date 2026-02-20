@@ -44,6 +44,8 @@ object KotlinElementTypeProviderImpl : KotlinElementTypeProvider {
     override val classBodyType: KtStubElementType<out KotlinPlaceHolderStub<KtClassBody>, KtClassBody> =
         KtStubElementTypes.CLASS_BODY
 
+    override val companionBlockType: KtStubElementType<out KotlinPlaceHolderStub<KtCompanionBlock>, KtCompanionBlock>
+        get() = KtStubElementTypes.COMPANION_BLOCK
 
     // Initializers
 

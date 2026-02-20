@@ -58,6 +58,12 @@ class KtClassBody : KtElementImplStub<KotlinPlaceHolderStub<KtClassBody>>, KtDec
     val allCompanionObjects: List<KtObjectDeclaration>
         get() = getStubOrPsiChildrenAsList(KtStubBasedElementTypes.OBJECT_DECLARATION).filter { it.isCompanion() }
 
+    /**
+     * Returns the list of all companion blocks.
+     */
+    val allCompanionBlocks: List<KtCompanionBlock>
+        get() = getStubOrPsiChildrenAsList(KtStubBasedElementTypes.COMPANION_BLOCK)
+
     val rBrace: PsiElement?
         get() = node.getChildren(rBraceTokenSet).singleOrNull()?.psi
 

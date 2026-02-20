@@ -31,6 +31,7 @@ public abstract interface class org/jetbrains/kotlin/KtNodeTypes {
 	public static final field CLASS_INITIALIZER Lcom/intellij/psi/tree/IElementType;
 	public static final field CLASS_LITERAL_EXPRESSION Lcom/intellij/psi/tree/IElementType;
 	public static final field COLLECTION_LITERAL_EXPRESSION Lcom/intellij/psi/tree/IElementType;
+	public static final field COMPANION_BLOCK Lcom/intellij/psi/tree/IElementType;
 	public static final field CONDITION Lcom/intellij/psi/tree/IElementType;
 	public static final field CONSTRUCTOR_CALLEE Lcom/intellij/psi/tree/IElementType;
 	public static final field CONSTRUCTOR_DELEGATION_CALL Lcom/intellij/psi/tree/IElementType;
@@ -1014,6 +1015,7 @@ public final class org/jetbrains/kotlin/psi/KtClassBody : org/jetbrains/kotlin/p
 	public fun <init> (Lcom/intellij/lang/ASTNode;)V
 	public fun <init> (Lorg/jetbrains/kotlin/psi/stubs/KotlinPlaceHolderStub;)V
 	public fun accept (Lorg/jetbrains/kotlin/psi/KtVisitor;Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun getAllCompanionBlocks ()Ljava/util/List;
 	public final fun getAllCompanionObjects ()Ljava/util/List;
 	public final fun getAnonymousInitializers ()Ljava/util/List;
 	public final fun getDanglingAnnotations ()Ljava/util/List;
@@ -1063,6 +1065,7 @@ public abstract class org/jetbrains/kotlin/psi/KtClassOrObject : org/jetbrains/k
 	public fun getBody ()Lorg/jetbrains/kotlin/psi/KtClassBody;
 	public fun getClassId ()Lorg/jetbrains/kotlin/name/ClassId;
 	public final fun getColon ()Lcom/intellij/psi/PsiElement;
+	public final fun getCompanionBlocks ()Ljava/util/List;
 	public fun getContextReceivers ()Ljava/util/List;
 	public final fun getDeclarationKeyword ()Lcom/intellij/psi/PsiElement;
 	public fun getDeclarations ()Ljava/util/List;
@@ -1187,6 +1190,14 @@ public class org/jetbrains/kotlin/psi/KtCommonFile : com/intellij/extapi/psi/Psi
 	public final fun setPackageFqName (Lorg/jetbrains/kotlin/name/FqName;)V
 	public final fun shouldChangeModificationCount (Lcom/intellij/psi/PsiElement;)Z
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class org/jetbrains/kotlin/psi/KtCompanionBlock : org/jetbrains/kotlin/psi/KtElementImplStub, org/jetbrains/kotlin/psi/KtDeclarationContainer {
+	public fun <init> (Lcom/intellij/lang/ASTNode;)V
+	public fun <init> (Lorg/jetbrains/kotlin/psi/stubs/KotlinPlaceHolderStub;)V
+	public fun accept (Lorg/jetbrains/kotlin/psi/KtVisitor;Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun getBody ()Lorg/jetbrains/kotlin/psi/KtClassBody;
+	public fun getDeclarations ()Ljava/util/List;
 }
 
 public class org/jetbrains/kotlin/psi/KtConstantExpression : org/jetbrains/kotlin/psi/KtElementImplStub, org/jetbrains/kotlin/psi/KtExpression {
@@ -2962,6 +2973,7 @@ public class org/jetbrains/kotlin/psi/KtVisitor : com/intellij/psi/PsiElementVis
 	public fun visitClassLiteralExpression (Lorg/jetbrains/kotlin/psi/KtClassLiteralExpression;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun visitClassOrObject (Lorg/jetbrains/kotlin/psi/KtClassOrObject;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun visitCollectionLiteralExpression (Lorg/jetbrains/kotlin/psi/KtCollectionLiteralExpression;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitCompanionBlock (Lorg/jetbrains/kotlin/psi/KtCompanionBlock;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun visitConstantExpression (Lorg/jetbrains/kotlin/psi/KtConstantExpression;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun visitConstructor (Lorg/jetbrains/kotlin/psi/KtConstructor;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun visitConstructorCalleeExpression (Lorg/jetbrains/kotlin/psi/KtConstructorCalleeExpression;Ljava/lang/Object;)Ljava/lang/Object;
@@ -3119,6 +3131,9 @@ public class org/jetbrains/kotlin/psi/KtVisitorVoid : org/jetbrains/kotlin/psi/K
 	public fun visitCollectionLiteralExpression (Lorg/jetbrains/kotlin/psi/KtCollectionLiteralExpression;)V
 	public synthetic fun visitCollectionLiteralExpression (Lorg/jetbrains/kotlin/psi/KtCollectionLiteralExpression;Ljava/lang/Object;)Ljava/lang/Object;
 	public final fun visitCollectionLiteralExpression (Lorg/jetbrains/kotlin/psi/KtCollectionLiteralExpression;Ljava/lang/Void;)Ljava/lang/Void;
+	public fun visitCompanionBlock (Lorg/jetbrains/kotlin/psi/KtCompanionBlock;)V
+	public synthetic fun visitCompanionBlock (Lorg/jetbrains/kotlin/psi/KtCompanionBlock;Ljava/lang/Object;)Ljava/lang/Object;
+	public fun visitCompanionBlock (Lorg/jetbrains/kotlin/psi/KtCompanionBlock;Ljava/lang/Void;)Ljava/lang/Void;
 	public fun visitConstantExpression (Lorg/jetbrains/kotlin/psi/KtConstantExpression;)V
 	public synthetic fun visitConstantExpression (Lorg/jetbrains/kotlin/psi/KtConstantExpression;Ljava/lang/Object;)Ljava/lang/Object;
 	public final fun visitConstantExpression (Lorg/jetbrains/kotlin/psi/KtConstantExpression;Ljava/lang/Void;)Ljava/lang/Void;
@@ -3445,6 +3460,9 @@ public class org/jetbrains/kotlin/psi/KtVisitorVoidWithParameter : org/jetbrains
 	public synthetic fun visitCollectionLiteralExpression (Lorg/jetbrains/kotlin/psi/KtCollectionLiteralExpression;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun visitCollectionLiteralExpression (Lorg/jetbrains/kotlin/psi/KtCollectionLiteralExpression;Ljava/lang/Object;)Ljava/lang/Void;
 	public fun visitCollectionLiteralExpressionVoid (Lorg/jetbrains/kotlin/psi/KtCollectionLiteralExpression;Ljava/lang/Object;)V
+	public synthetic fun visitCompanionBlock (Lorg/jetbrains/kotlin/psi/KtCompanionBlock;Ljava/lang/Object;)Ljava/lang/Object;
+	public final fun visitCompanionBlock (Lorg/jetbrains/kotlin/psi/KtCompanionBlock;Ljava/lang/Object;)Ljava/lang/Void;
+	public fun visitCompanionBlockVoid (Lorg/jetbrains/kotlin/psi/KtCompanionBlock;Ljava/lang/Object;)V
 	public synthetic fun visitConstantExpression (Lorg/jetbrains/kotlin/psi/KtConstantExpression;Ljava/lang/Object;)Ljava/lang/Object;
 	public final fun visitConstantExpression (Lorg/jetbrains/kotlin/psi/KtConstantExpression;Ljava/lang/Object;)Ljava/lang/Void;
 	public fun visitConstantExpressionVoid (Lorg/jetbrains/kotlin/psi/KtConstantExpression;Ljava/lang/Object;)V
