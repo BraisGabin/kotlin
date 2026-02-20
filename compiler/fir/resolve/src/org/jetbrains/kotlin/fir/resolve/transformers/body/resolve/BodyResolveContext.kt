@@ -12,6 +12,7 @@ import org.jetbrains.kotlin.fir.declarations.*
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.utils.effectiveVisibility
 import org.jetbrains.kotlin.fir.declarations.utils.isCompanion
+import org.jetbrains.kotlin.fir.declarations.utils.isCompanionBlockMember
 import org.jetbrains.kotlin.fir.declarations.utils.isInline
 import org.jetbrains.kotlin.fir.declarations.utils.isInner
 import org.jetbrains.kotlin.fir.declarations.utils.isReplSnippetDeclaration
@@ -222,9 +223,9 @@ class BodyResolveContext(
     }
 
     @PrivateForInline
-    inline fun <T> withTowerDataMode(mode: FirTowerDataMode, f: () -> T): T {
+    inline fun <T> withTowerDataMode(mode: FirTowerDataMode?, f: () -> T): T {
         return withTowerDataModeCleanup {
-            towerDataMode = mode
+            towerDataMode = mode ?: towerDataMode
             f()
         }
     }
@@ -665,6 +666,7 @@ class BodyResolveContext(
             regular = forMembersResolution,
             forNestedClasses = newTowerDataContextForStaticNestedClasses,
             forCompanionObject = statics,
+            forCompanionBlock = staticsAndCompanion,
             forConstructorHeaders = forConstructorHeader,
             forEnumEntries = scopeForEnumEntries,
             primaryConstructorPureParametersScope = primaryConstructorPureParametersScope,
@@ -808,9 +810,11 @@ class BodyResolveContext(
             storeFunction(namedFunction, session)
         }
 
-        return withTypeParametersOf(namedFunction) {
-            withPublicApiInlineFunctionIfApplicable(namedFunction) {
-                withContainer(namedFunction, f)
+        return withTowerDataMode(if (namedFunction.isCompanionBlockMember) FirTowerDataMode.COMPANION_BLOCK else null) {
+            withTypeParametersOf(namedFunction) {
+                withPublicApiInlineFunctionIfApplicable(namedFunction) {
+                    withContainer(namedFunction, f)
+                }
             }
         }
     }
@@ -983,10 +987,12 @@ class BodyResolveContext(
     @OptIn(PrivateForInline::class)
     inline fun <T> withProperty(
         property: FirProperty,
-        f: () -> T
+        f: () -> T,
     ): T {
-        return withTypeParametersOf(property) {
-            withContainer(property, f)
+        return withTowerDataMode(if (property.isCompanionBlockMember) FirTowerDataMode.COMPANION_BLOCK else null) {
+            withTypeParametersOf(property) {
+                withContainer(property, f)
+            }
         }
     }
 
