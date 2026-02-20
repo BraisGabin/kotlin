@@ -2123,6 +2123,26 @@ public class CompiledJsStubsTestGenerated extends AbstractCompiledJsStubsTest {
   }
 
   @Nested
+  @TestMetadata("compiler/testData/psi/companionBlocks")
+  @TestDataPath("$PROJECT_ROOT")
+  public class CompanionBlocks {
+    private void run(String fileName) {
+      runTest("compiler/testData/psi/companionBlocks/" + fileName);
+    }
+
+    @Test
+    public void testAllFilesPresentInCompanionBlocks() {
+      KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/psi/companionBlocks"), Pattern.compile("^([^.]+)\\.kt$"), null, true);
+    }
+
+    @Test
+    @TestMetadata("smoke.kt")
+    public void testSmoke() {
+      run("smoke.kt");
+    }
+  }
+
+  @Nested
   @TestMetadata("compiler/testData/psi/contextParameters")
   @TestDataPath("$PROJECT_ROOT")
   public class ContextParameters {

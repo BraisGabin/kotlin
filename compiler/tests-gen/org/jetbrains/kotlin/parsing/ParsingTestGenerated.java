@@ -1796,6 +1796,24 @@ public class ParsingTestGenerated extends AbstractParsingTest {
       }
     }
 
+    @TestMetadata("compiler/testData/psi/companionBlocks")
+    @TestDataPath("$PROJECT_ROOT")
+    @RunWith(JUnit3RunnerWithInners.class)
+    public static class CompanionBlocks extends AbstractParsingTest {
+      private void runTest(String testDataFilePath) {
+        KotlinTestUtils.runTest(this::doParsingTest, this, testDataFilePath);
+      }
+
+      public void testAllFilesPresentInCompanionBlocks() {
+        KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/psi/companionBlocks"), Pattern.compile("^(.*)\\.kts?$"), null, true);
+      }
+
+      @TestMetadata("smoke.kt")
+      public void testSmoke() {
+        runTest("compiler/testData/psi/companionBlocks/smoke.kt");
+      }
+    }
+
     @TestMetadata("compiler/testData/psi/contextParameters")
     @TestDataPath("$PROJECT_ROOT")
     @RunWith(JUnit3RunnerWithInners.class)
