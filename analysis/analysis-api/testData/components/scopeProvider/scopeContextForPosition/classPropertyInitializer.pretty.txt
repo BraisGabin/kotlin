@@ -30,13 +30,31 @@ scopes:
     constructors: 1
       constructor(constructorProp: kotlin.Int, constructorParam: kotlin.Int)
 
-  ExplicitSimpleImportingScope, index = 2
+  StaticMemberScope, index = 2
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  PackageMemberScope, index = 3
+  StaticMemberScope, index = 3
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  StaticMemberScope, index = 4
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  ExplicitSimpleImportingScope, index = 5
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  PackageMemberScope, index = 6
     packages: 0
     classifiers: 2
       class Base(value: kotlin.Int)
@@ -44,15 +62,14 @@ scopes:
     callables: 0
     constructors: 0
 
-  DefaultSimpleImportingScope, index = 4
+  DefaultSimpleImportingScope, index = 7
 
-  DefaultSimpleImportingScope, index = 5
+  DefaultSimpleImportingScope, index = 8
 
-  ExplicitStarImportingScope, index = 6
+  ExplicitStarImportingScope, index = 9
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  DefaultStarImportingScope, index = 7
-
+  DefaultStarImportingScope, index = 10

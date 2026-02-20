@@ -18,12 +18,17 @@ Tower Data Context:
             Classifiers:
                 FirRegularClassSymbol local final class Local : R|kotlin/Any|
     Element 8
+        Scope: FirNestedClassifierScopeWithSubstitution
+        Static scope owner symbol: FirRegularClassSymbol public open class Any
+    Element 9
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 10
         Implicit receiver:
             FirRegularClassSymbol local final class Local : R|kotlin/Any|
                 Type: <local>.Local
-    Element 9
+    Element 11
         Scope: FirLocalScope
-    Element 10
+    Element 12
         Scope: FirLocalScope
 
 FILE: [ResolvedTo(IMPORTS)] localClassFunction.kt

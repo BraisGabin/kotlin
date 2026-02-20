@@ -3829,6 +3829,7 @@ public final class org/jetbrains/kotlin/psi/psiUtil/KtPsiUtilKt {
 	public static final fun getAssignmentByLHS (Lorg/jetbrains/kotlin/psi/KtExpression;)Lorg/jetbrains/kotlin/psi/KtBinaryExpression;
 	public static final fun getBinaryWithTypeParent (Lorg/jetbrains/kotlin/psi/KtExpression;)Lorg/jetbrains/kotlin/psi/KtBinaryExpressionWithTypeRHS;
 	public static final fun getCallNameExpression (Lorg/jetbrains/kotlin/psi/KtCallElement;)Lorg/jetbrains/kotlin/psi/KtSimpleNameExpression;
+	public static final fun getContainingClassOrObject (Lorg/jetbrains/kotlin/psi/KtClassBody;)Lorg/jetbrains/kotlin/psi/KtClassOrObject;
 	public static final fun getContainingClassOrObject (Lorg/jetbrains/kotlin/psi/KtDeclaration;)Lorg/jetbrains/kotlin/psi/KtClassOrObject;
 	public static final fun getContentRange (Lorg/jetbrains/kotlin/psi/KtStringTemplateExpression;)Lcom/intellij/openapi/util/TextRange;
 	public static final fun getFileOrScriptDeclarations (Lorg/jetbrains/kotlin/psi/KtFile;)Ljava/util/List;

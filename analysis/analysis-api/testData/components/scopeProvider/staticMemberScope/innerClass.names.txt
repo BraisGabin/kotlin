@@ -3,3 +3,4 @@ Classifier names:
   InnerClassInB
 
 Callable names:
+  <init>

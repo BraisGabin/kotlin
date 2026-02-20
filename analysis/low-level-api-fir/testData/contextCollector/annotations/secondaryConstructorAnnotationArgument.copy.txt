@@ -12,22 +12,28 @@ Tower Data Context:
     Element 5
         Scope: FirExplicitSimpleImportingScope
     Element 6
+        Scope: FirNestedClassifierScopeWithSubstitution
+        Static scope owner symbol: FirRegularClassSymbol public open class Any
+    Element 7
         Implicit receiver:
             FirRegularClassSymbol public final companion object Companion : R|kotlin/Any|
                 Type: pack.SuperClass.Companion
-    Element 7
+    Element 8
         Scope: FirNestedClassifierScopeWithSubstitution
             Classifiers:
                 FirRegularClassSymbol public final companion object Companion : R|kotlin/Any|
         Static scope owner symbol: FirRegularClassSymbol public open class SuperClass : R|kotlin/Any|
-    Element 8
+    Element 9
         Implicit receiver:
             FirRegularClassSymbol public final companion object Companion : R|kotlin/Any|
                 Type: pack.TopLevelClass.Companion
-    Element 9
+    Element 10
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 11
         Scope: FirNestedClassifierScopeImpl
             Classifiers:
                 FirRegularClassSymbol public final companion object Companion : R|kotlin/Any|
+        Scope: FirNameAwareOnlyCallablesScope
 
 FILE: [ResolvedTo(IMPORTS)] secondaryConstructorAnnotationArgument.kt
     public final? [ResolvedTo(RAW_FIR)] annotation class Anno : R|kotlin/Annotation| {

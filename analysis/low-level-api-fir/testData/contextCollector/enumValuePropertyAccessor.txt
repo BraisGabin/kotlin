@@ -33,14 +33,16 @@ Tower Data Context:
                 FirRegularPropertySymbol public final static val entries: R|kotlin/enums/EnumEntries<Direction>|
                     public get(): R|kotlin/enums/EnumEntries<Direction>|
     Element 9
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 10
         Implicit receiver:
             FirAnonymousObjectSymbol object : R|Direction|
                 Type: <anonymous>
-    Element 10
+    Element 11
         Scope: FirLocalScope
             Properties:
                 FirBackingFieldSymbol private final backing field field: R|kotlin/Int|
-    Element 11
+    Element 12
         Scope: FirLocalScope
 
 FILE: [ResolvedTo(IMPORTS)] enumValuePropertyAccessor.kt

@@ -106,36 +106,37 @@ class FirKotlinScopeProvider(
         klass: FirClass,
         useSiteSession: FirSession,
         scopeSession: ScopeSession
-    ): FirContainingNamesAwareScope? = getStaticCallableMemberScopeImpl(klass, useSiteSession, scopeSession, forBackend = false)
+    ): FirContainingNamesAwareScope = getStaticCallableMemberScopeImpl(klass, useSiteSession, scopeSession, forBackend = false)
 
     override fun getStaticCallableMemberScopeForBackend(
         klass: FirClass,
         useSiteSession: FirSession,
         scopeSession: ScopeSession,
-    ): FirContainingNamesAwareScope? = getStaticCallableMemberScopeImpl(klass, useSiteSession, scopeSession, forBackend = true)
+    ): FirContainingNamesAwareScope = getStaticCallableMemberScopeImpl(klass, useSiteSession, scopeSession, forBackend = true)
 
     private fun getStaticCallableMemberScopeImpl(
         klass: FirClass,
         useSiteSession: FirSession,
         scopeSession: ScopeSession,
         forBackend: Boolean
-    ): FirContainingNamesAwareScope? {
-        return when {
-            klass.classKind == ClassKind.ENUM_CLASS -> FirNameAwareOnlyCallablesScope(
-                FirStaticScope(
-                    useSiteSession.declaredMemberScope(
-                        klass,
-                        memberRequiredPhase = null,
-                    )
+    ): FirContainingNamesAwareScope {
+        val scope = FirNameAwareOnlyCallablesScope(
+            FirStaticScope(
+                useSiteSession.declaredMemberScope(
+                    klass,
+                    memberRequiredPhase = null,
                 )
             )
-            forBackend -> {
-                val superClass = klass.superConeTypes.firstNotNullOfOrNull {
-                    it.fullyExpandedType(useSiteSession).toRegularClassSymbol(useSiteSession)?.takeIf { it.classKind == ClassKind.CLASS }
-                }?.fir
-                superClass?.staticScopeForBackend(useSiteSession, scopeSession)
-            }
-            else -> null
+        )
+
+        return if (forBackend) {
+            val superClass = klass.superConeTypes.firstNotNullOfOrNull {
+                it.fullyExpandedType(useSiteSession).toRegularClassSymbol(useSiteSession)?.takeIf { it.classKind == ClassKind.CLASS }
+            }?.fir
+            val superClassScope = superClass?.staticScopeForBackend(useSiteSession, scopeSession) ?: return scope
+            FirNameAwareCompositeScope(listOf(scope, superClassScope))
+        } else {
+            scope
         }
     }
 

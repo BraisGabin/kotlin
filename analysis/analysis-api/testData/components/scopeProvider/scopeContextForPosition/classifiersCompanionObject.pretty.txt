@@ -38,10 +38,22 @@ scopes:
     callables: 0
     constructors: 0
 
+  StaticMemberScope, index = 2
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
   StaticMemberScope, index = 3
     packages: 0
     classifiers: 1
       class Nested
+    callables: 0
+    constructors: 0
+
+  StaticMemberScope, index = 3
+    packages: 0
+    classifiers: 0
     callables: 0
     constructors: 0
 
@@ -57,13 +69,19 @@ scopes:
     constructors: 1
       constructor()
 
-  ExplicitSimpleImportingScope, index = 5
+  StaticMemberScope, index = 5
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  PackageMemberScope, index = 6
+  ExplicitSimpleImportingScope, index = 6
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  PackageMemberScope, index = 7
     packages: 6
       META-INF
       java
@@ -76,15 +94,14 @@ scopes:
     callables: 0
     constructors: 0
 
-  DefaultSimpleImportingScope, index = 7
-
   DefaultSimpleImportingScope, index = 8
 
-  ExplicitStarImportingScope, index = 9
+  DefaultSimpleImportingScope, index = 9
+
+  ExplicitStarImportingScope, index = 10
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  DefaultStarImportingScope, index = 10
-
+  DefaultStarImportingScope, index = 11

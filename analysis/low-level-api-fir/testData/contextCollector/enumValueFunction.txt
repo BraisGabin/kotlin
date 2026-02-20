@@ -30,6 +30,8 @@ Tower Data Context:
                 FirRegularPropertySymbol public final static val entries: R|kotlin/enums/EnumEntries<Foo>|
                     public get(): R|kotlin/enums/EnumEntries<Foo>|
     Element 9
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 10
         Implicit receiver:
             FirAnonymousObjectSymbol object : R|Foo|
                 Type: <anonymous>

@@ -10,7 +10,7 @@ implicit values:
       <anonymous>
 
   KaImplicitReceiver:
-    scopeIndexInTower = 5
+    scopeIndexInTower = 6
     type = KaUsualClassType:
       annotations: []
       typeArguments: []
@@ -639,6 +639,12 @@ scopes:
   StaticMemberScope, index = 3
     packages: 0
     classifiers: 0
+    callables: 0
+    constructors: 0
+
+  StaticMemberScope, index = 4
+    packages: 0
+    classifiers: 0
     callables: 4
       KaEnumEntrySymbol:
         annotations: []
@@ -828,7 +834,7 @@ scopes:
         visibility: PUBLIC
     constructors: 0
 
-  StaticMemberScope, index = 4
+  StaticMemberScope, index = 5
     packages: 0
     classifiers: 1
       KaNamedClassSymbol:
@@ -860,7 +866,7 @@ scopes:
     callables: 0
     constructors: 0
 
-  TypeScope, index = 5
+  TypeScope, index = 6
     packages: 0
     classifiers: 0
     callables: 3
@@ -991,13 +997,13 @@ scopes:
         visibility: PUBLIC
     constructors: 0
 
-  ExplicitSimpleImportingScope, index = 6
+  ExplicitSimpleImportingScope, index = 7
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  PackageMemberScope, index = 7
+  PackageMemberScope, index = 8
     packages: 6
       KaPackageSymbol:
         fqName: META-INF
@@ -1058,15 +1064,14 @@ scopes:
     callables: 0
     constructors: 0
 
-  DefaultSimpleImportingScope, index = 8
-
   DefaultSimpleImportingScope, index = 9
 
-  ExplicitStarImportingScope, index = 10
+  DefaultSimpleImportingScope, index = 10
+
+  ExplicitStarImportingScope, index = 11
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  DefaultStarImportingScope, index = 11
-
+  DefaultStarImportingScope, index = 12

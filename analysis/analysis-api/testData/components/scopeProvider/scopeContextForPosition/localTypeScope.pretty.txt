@@ -32,7 +32,19 @@ scopes:
     constructors: 1
       constructor()
 
-  LocalScope, index = 3
+  StaticMemberScope, index = 3
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  StaticMemberScope, index = 4
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  LocalScope, index = 5
     packages: 0
     classifiers: 1
       class Y
@@ -40,19 +52,19 @@ scopes:
       val localInZ: kotlin.Int
     constructors: 0
 
-  LocalScope, index = 4
+  LocalScope, index = 6
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  ExplicitSimpleImportingScope, index = 5
+  ExplicitSimpleImportingScope, index = 7
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  PackageMemberScope, index = 6
+  PackageMemberScope, index = 8
     packages: 6
       META-INF
       java
@@ -65,15 +77,14 @@ scopes:
       fun z()
     constructors: 0
 
-  DefaultSimpleImportingScope, index = 7
+  DefaultSimpleImportingScope, index = 9
 
-  DefaultSimpleImportingScope, index = 8
+  DefaultSimpleImportingScope, index = 10
 
-  ExplicitStarImportingScope, index = 9
+  ExplicitStarImportingScope, index = 11
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  DefaultStarImportingScope, index = 10
-
+  DefaultStarImportingScope, index = 12

@@ -28,6 +28,11 @@ Tower Data Context:
             Classifiers:
                 FirRegularClassSymbol public final class Foo : R|kotlin/Any|
     Element 11
+        Scope: FirNestedClassifierScopeWithSubstitution
+        Static scope owner symbol: FirRegularClassSymbol public open class Any
+    Element 12
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 13
         Implicit receiver:
             FirRegularClassSymbol public final class Foo : R|kotlin/Any|
                 Type: Foo

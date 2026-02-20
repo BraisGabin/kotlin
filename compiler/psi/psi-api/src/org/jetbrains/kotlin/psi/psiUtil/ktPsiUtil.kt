@@ -525,14 +525,22 @@ fun KtStringTemplateExpression.isPlainWithEscapes() =
 // Correct for class members only (including constructors and nested classes)
 // Returns null e.g. for member function parameters, member function locals, property accessors
 val KtDeclaration.containingClassOrObject: KtClassOrObject?
-    get() = parent.let {
-        when (it) {
-            is KtClassBody -> it.parent as? KtClassOrObject
-            is KtClassOrObject -> it
-            is KtParameterList -> (it.parent as? KtPrimaryConstructor)?.getContainingClassOrObject()
-            else -> null
-        }
+    get() = when (val parent = parent) {
+        is KtClassBody -> parent.containingClassOrObject
+        is KtClassOrObject -> parent
+        is KtParameterList -> (parent.parent as? KtPrimaryConstructor)?.getContainingClassOrObject()
+        else -> null
     }
+
+/**
+ * If the parent is a [KtClassOrObject], returns it.
+ *
+ * If the parent is a [KtCompanionBlock], returns its containing class.
+ *
+ * Otherwise, returns `null`.
+ */
+val KtClassBody.containingClassOrObject: KtClassOrObject?
+    get() = parent as? KtClassOrObject ?: (parent as? KtCompanionBlock)?.parent?.parent as? KtClassOrObject
 
 fun KtExpression.getOutermostParenthesizerOrThis(): KtExpression {
     return (parentsWithSelf.zip(parents)).firstOrNull {

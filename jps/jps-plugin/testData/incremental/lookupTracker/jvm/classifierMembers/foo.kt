@@ -18,9 +18,9 @@ import bar.*
         /*p:foo.A*/foo()
         /*p:foo.A(a)*/this.a
         /*p:foo.A(foo)*/this.foo()
-        /*p:bar p:foo p:foo.A p:foo.A.Companion*/baz()
-        /*p:bar p:foo p:foo.A p:foo.A(a) p:foo.A.Companion p:foo.A.Companion(a)*/Companion.a
-        /*p:bar p:foo p:foo.A p:foo.A.Companion p:foo.A.O(v)*/O.v = "OK"
+        /*p:bar p:foo p:foo.A p:foo.A.Companion p:kotlin.Any*/baz()
+        /*p:bar p:foo p:foo.A p:foo.A(a) p:foo.A.Companion p:foo.A.Companion(a) p:kotlin.Any*/Companion.a
+        /*p:bar p:foo p:foo.A p:foo.A.Companion p:foo.A.O(v) p:kotlin.Any*/O.v = "OK"
     }
 
     class B {
@@ -54,7 +54,7 @@ import bar.*
     override var a = 1
     override fun foo() {}
     val b = 1
-    fun bar(): /*p:bar p:foo*/I = null as /*p:bar p:foo*/I
+    fun bar(): /*p:bar p:foo*/I = null as /*p:bar p:foo p:foo.Obj*/I
 }
 
 /*p:foo*/enum class E {

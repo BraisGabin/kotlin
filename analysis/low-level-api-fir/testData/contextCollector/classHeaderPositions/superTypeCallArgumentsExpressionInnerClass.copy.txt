@@ -12,20 +12,29 @@ Tower Data Context:
     Element 5
         Scope: FirExplicitSimpleImportingScope
     Element 6
+        Scope: FirNestedClassifierScopeWithSubstitution
+        Static scope owner symbol: FirRegularClassSymbol public open class Any
+    Element 7
         Scope: FirNestedClassifierScopeImpl
             Classifiers:
                 FirRegularClassSymbol public open class Base : R|kotlin/Any|
                 FirRegularClassSymbol public final inner class Child : R|test/TopLevel.Base|
-    Element 7
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 8
         Implicit receiver:
             FirRegularClassSymbol public final class TopLevel : R|kotlin/Any|
                 Type: test.TopLevel
-    Element 8
+    Element 9
+        Scope: FirNestedClassifierScopeWithSubstitution
+        Static scope owner symbol: FirRegularClassSymbol public open class Any
+    Element 10
         Scope: FirNestedClassifierScopeWithSubstitution
             Classifiers:
                 FirRegularClassSymbol public final? class Nested : R|kotlin/Any|
         Static scope owner symbol: FirRegularClassSymbol public open class Base : R|kotlin/Any|
-    Element 9
+    Element 11
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 12
         Scope: FirLocalScope
             Properties:
                 FirValueParameterSymbol primaryConstructorParameter: R|test/TopLevel.Base.Nested|

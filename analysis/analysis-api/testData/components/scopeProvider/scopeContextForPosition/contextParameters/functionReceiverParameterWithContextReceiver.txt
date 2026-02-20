@@ -379,13 +379,25 @@ scopes:
     callables: 0
     constructors: 0
 
-  ExplicitSimpleImportingScope, index = 3
+  StaticMemberScope, index = 3
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  PackageMemberScope, index = 4
+  StaticMemberScope, index = 4
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  ExplicitSimpleImportingScope, index = 5
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  PackageMemberScope, index = 6
     packages: 6
       KaPackageSymbol:
         fqName: META-INF
@@ -541,15 +553,14 @@ scopes:
     callables: 0
     constructors: 0
 
-  DefaultSimpleImportingScope, index = 5
+  DefaultSimpleImportingScope, index = 7
 
-  DefaultSimpleImportingScope, index = 6
+  DefaultSimpleImportingScope, index = 8
 
-  ExplicitStarImportingScope, index = 7
+  ExplicitStarImportingScope, index = 9
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  DefaultStarImportingScope, index = 8
-
+  DefaultStarImportingScope, index = 10

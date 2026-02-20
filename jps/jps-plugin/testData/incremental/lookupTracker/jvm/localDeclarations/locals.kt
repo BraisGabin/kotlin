@@ -27,7 +27,7 @@ import bar.*
 
     val o = object {
         val a = "aaa"
-        fun foo(): /*p:bar p:local.declarations*/LocalI = null as /*p:bar p:local.declarations*/LocalI
+        fun foo(): /*p:bar p:local.declarations*/LocalI = null as /*p:bar p:kotlin.Any p:local.declarations p:local.declarations.<anonymous>*/LocalI
     }
 
     localFun()

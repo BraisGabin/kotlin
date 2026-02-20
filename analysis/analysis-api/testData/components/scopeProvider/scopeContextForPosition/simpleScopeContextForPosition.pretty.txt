@@ -121,6 +121,12 @@ scopes:
     callables: 0
     constructors: 0
 
+  StaticMemberScope, index = 12
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
   StaticMemberScope, index = 13
     packages: 0
     classifiers: 1
@@ -128,13 +134,19 @@ scopes:
     callables: 0
     constructors: 0
 
-  ExplicitSimpleImportingScope, index = 14
+  StaticMemberScope, index = 14
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  PackageMemberScope, index = 15
+  ExplicitSimpleImportingScope, index = 15
+    packages: 0
+    classifiers: 0
+    callables: 0
+    constructors: 0
+
+  PackageMemberScope, index = 16
     packages: 6
       META-INF
       java
@@ -154,15 +166,14 @@ scopes:
       fun topLevel(): kotlin.Int
     constructors: 0
 
-  DefaultSimpleImportingScope, index = 16
-
   DefaultSimpleImportingScope, index = 17
 
-  ExplicitStarImportingScope, index = 18
+  DefaultSimpleImportingScope, index = 18
+
+  ExplicitStarImportingScope, index = 19
     packages: 0
     classifiers: 0
     callables: 0
     constructors: 0
 
-  DefaultStarImportingScope, index = 19
-
+  DefaultStarImportingScope, index = 20

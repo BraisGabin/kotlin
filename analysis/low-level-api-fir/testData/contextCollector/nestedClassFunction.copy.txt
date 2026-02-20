@@ -12,22 +12,31 @@ Tower Data Context:
     Element 5
         Scope: FirExplicitSimpleImportingScope
     Element 6
+        Scope: FirNestedClassifierScopeWithSubstitution
+        Static scope owner symbol: FirRegularClassSymbol public open class Any
+    Element 7
         Scope: FirNestedClassifierScopeImpl
             Classifiers:
                 FirRegularClassSymbol public final class Bar<B> : R|kotlin/Any|
-    Element 7
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 8
+        Scope: FirNestedClassifierScopeWithSubstitution
+        Static scope owner symbol: FirRegularClassSymbol public open class Any
+    Element 9
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 10
         Scope: FirMemberTypeParameterScope
             Classifiers:
                 FirTypeParameterSymbol B
-    Element 8
+    Element 11
         Implicit receiver:
             FirRegularClassSymbol public final class Bar<B> : R|kotlin/Any|
                 Type: test.Foo.Bar<B>
-    Element 9
+    Element 12
         Scope: FirLocalScope
             Properties:
                 FirValueParameterSymbol b: R|B|
-    Element 10
+    Element 13
         Scope: FirLocalScope
 
 FILE: [ResolvedTo(IMPORTS)] nestedClassFunction.kt

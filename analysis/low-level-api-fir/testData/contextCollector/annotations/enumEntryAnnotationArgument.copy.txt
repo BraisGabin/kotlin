@@ -25,6 +25,8 @@ Tower Data Context:
             FirRegularClassSymbol public final companion object Companion : R|kotlin/Any|
                 Type: pack.MyEnumClass.Companion
     Element 9
+        Scope: FirNameAwareOnlyCallablesScope
+    Element 10
         Scope: FirNestedClassifierScopeImpl
             Classifiers:
                 FirRegularClassSymbol public final companion object Companion : R|kotlin/Any|
