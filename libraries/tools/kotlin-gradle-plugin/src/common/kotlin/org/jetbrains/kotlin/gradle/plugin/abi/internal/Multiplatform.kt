@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.gradle.plugin.abi.internal
 
 import org.gradle.api.NamedDomainObjectCollection
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.provider.Provider
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -22,12 +21,10 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
  */
 internal fun finalizeMultiplatformVariant(
     project: Project,
-    abiClasspath: Configuration,
     targets: NamedDomainObjectCollection<KotlinTarget>,
     keepLocallyUnsupportedTargets: Provider<Boolean>
 ) {
     val taskSet = AbiValidationTaskSet(project)
-    taskSet.setClasspath(abiClasspath)
     taskSet.keepLocallyUnsupportedTargets(keepLocallyUnsupportedTargets)
     taskSet.klibEnabled(project.provider { true })
 
