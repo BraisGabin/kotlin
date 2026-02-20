@@ -567,6 +567,8 @@ open class PsiRawFirBuilder(
                             this@toFirPropertyAccessor?.hasModifier(EXTERNAL_KEYWORD) == true
                     isExpect = property.hasModifier(EXPECT_KEYWORD) ||
                             this@toFirPropertyAccessor?.hasModifier(EXPECT_KEYWORD) == true
+                    isStatic = property.hasModifier(COMPANION_KEYWORD) ||
+                            this@toFirPropertyAccessor?.hasModifier(COMPANION_KEYWORD) == true
                 }
             val propertyTypeRefToUse = propertyTypeRef.copyWithNewSourceKind(KtFakeSourceElementKind.ImplicitTypeRef)
             return when {
@@ -2231,6 +2233,7 @@ open class PsiRawFirBuilder(
                             isTailRec = function.hasModifier(TAILREC_KEYWORD)
                             isExternal = function.hasModifier(EXTERNAL_KEYWORD)
                             isSuspend = function.hasModifier(SUSPEND_KEYWORD)
+                            isStatic = function.hasModifier(COMPANION_KEYWORD)
                         }
                     }
                 }
@@ -2620,6 +2623,7 @@ open class PsiRawFirBuilder(
                                 isConst = hasModifier(CONST_KEYWORD)
                                 isLateInit = hasModifier(LATEINIT_KEYWORD)
                                 isExternal = hasModifier(EXTERNAL_KEYWORD)
+                                isStatic = hasModifier(COMPANION_KEYWORD)
                             }
 
                             if (hasDelegate()) {
