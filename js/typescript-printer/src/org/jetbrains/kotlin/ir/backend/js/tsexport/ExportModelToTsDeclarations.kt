@@ -175,7 +175,7 @@ public class ExportModelToTsDeclarations(private val moduleKind: ModuleKind) {
         if (typeParameters.isNotEmpty()) {
             typeParameters.joinToString(", ", "<", ">") { tp ->
                 buildString {
-                    tp.variance?.let {
+                    tp.variance.let {
                         if (includeVariance)
                             append(it.keyword)
                     }
