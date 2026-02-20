@@ -1452,10 +1452,17 @@ internal class KotlinParsing private constructor(builder: SemanticWhitespaceAwar
         }
         val decl = mark()
 
+        val isCompanionBlock =
+            atWithRemap(KtTokens.COMPANION_MODIFIER) && lookahead(1) === KtTokens.LBRACE
+
         val detector = ModifierDetector()
         parseModifierList(detector, emptySyntaxElementTypeSet())
 
-        val declType = parseMemberDeclarationRest(detector)
+        val declType = if (isCompanionBlock) {
+            parseCompanionBlock()
+        } else {
+            parseMemberDeclarationRest(detector)
+        }
 
         if (declType == null) {
             errorWithRecovery("Expecting member declaration", emptySyntaxElementTypeSet())
@@ -1493,6 +1500,10 @@ internal class KotlinParsing private constructor(builder: SemanticWhitespaceAwar
         return declType
     }
 
+    private fun parseCompanionBlock(): SyntaxElementType {
+        parseClassBody()
+        return KtNodeTypes.COMPANION_BLOCK
+    }
     /*
      * secondaryConstructor
      *   : modifiers "constructor" valueParameters (":" constructorDelegationCall)? block
