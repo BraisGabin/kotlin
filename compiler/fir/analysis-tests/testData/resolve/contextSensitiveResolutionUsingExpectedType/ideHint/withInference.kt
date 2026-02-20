@@ -24,9 +24,9 @@ fun <T3> select(x: T3, y: T3): T3 = TODO()
 fun <T4> myRun(x: () -> T4): T4 = TODO()
 
 fun main() {
-    val a1: A = id(<!DEBUG_INFO_CSR_MIGHT_BE_USED!>A.X<!>)
+    val a1: A = id(A.X)
     val a2 = id(A.X)
-    val list1: List<A> = myListOf(<!DEBUG_INFO_CSR_MIGHT_BE_USED!>A.Y<!>)
+    val list1: List<A> = myListOf(A.Y)
     val list2 = myListOf(A.Y)
 
     expectsA(id(A.X))
@@ -37,10 +37,10 @@ fun main() {
     }
 
     expectAInLambda {
-        id(<!DEBUG_INFO_CSR_MIGHT_BE_USED!>A.X<!>)
+        id(A.X)
     }
 
-    val a3: A = select(<!DEBUG_INFO_CSR_MIGHT_BE_USED!>A.X<!>, <!DEBUG_INFO_CSR_MIGHT_BE_USED!>A.Y<!>)
+    val a3: A = select(A.X, A.Y)
     // There's a room for improvement, but it's potentially hard to support because we complete `id` calls in a FULL mode independently
     val a4: A = select(id(A.X), id(A.X))
 
@@ -58,7 +58,7 @@ fun main() {
     }
 
     val a7: A = myRun {
-        <!DEBUG_INFO_CSR_MIGHT_BE_USED!>A.X<!>
+        A.X
     }
 
     val a8: A = myRun {

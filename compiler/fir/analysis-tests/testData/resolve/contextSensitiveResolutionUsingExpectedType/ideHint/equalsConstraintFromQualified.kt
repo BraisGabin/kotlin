@@ -24,7 +24,7 @@ fun main() {
     //  => In<A> <: In<T>
     //  => T <: A
     //  => T == A
-    id(<!DEBUG_INFO_CSR_MIGHT_BE_USED!>A.X<!>)
+    id(A.X)
 }
 
 /* GENERATED_FIR_TAGS: enumDeclaration, enumEntry, functionDeclaration, in, interfaceDeclaration, nullableType,

@@ -18,9 +18,14 @@ import org.jetbrains.kotlin.fir.resolve.calls.candidate.Candidate
 import org.jetbrains.kotlin.fir.resolve.calls.candidate.processCandidatesAndPostponedAtoms
 import org.jetbrains.kotlin.fir.resolve.inference.model.ConeFixVariableConstraintPosition
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
-import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.ConeErrorType
+import org.jetbrains.kotlin.fir.types.ConeKotlinType
+import org.jetbrains.kotlin.fir.types.ConeTypeVariable
+import org.jetbrains.kotlin.fir.types.asCone
 import org.jetbrains.kotlin.resolve.calls.inference.components.*
-import org.jetbrains.kotlin.resolve.calls.inference.model.*
+import org.jetbrains.kotlin.resolve.calls.inference.model.NewConstraintSystemImpl
+import org.jetbrains.kotlin.resolve.calls.inference.model.NotEnoughInformationForTypeParameter
+import org.jetbrains.kotlin.resolve.calls.inference.model.VariableWithConstraints
 import org.jetbrains.kotlin.resolve.calls.model.PostponedAtomWithRevisableExpectedType
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.model.TypeConstructorMarker
@@ -87,7 +92,7 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
 
             if (completionMode.isUntilFirstLambda() && hasLambdaToAnalyze(postponedArguments)) return
 
-            if (analyzeContextSensitiveResolutionAlternativesWithNonVariableTypes(postponedArguments, analyzer)) continue
+            if (analyzeContextSensitiveResolutionAlternatives(postponedArguments, analyzer)) continue
 
             // Stage 1: analyze postponed arguments with fixed parameter types
             if (analyzeArgumentWithFixedParameterTypes(postponedArguments) {
@@ -124,7 +129,8 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
                     languageVersionSettings,
                 )
 
-            val collectionLiteralWithBoundsForFixation = findFirstCollectionLiteralForFixation(postponedArguments, context, dependencyProvider)
+            val collectionLiteralWithBoundsForFixation =
+                findFirstCollectionLiteralForFixation(postponedArguments, context, dependencyProvider)
 
             // Stage 1 for collection literals: CLs with `Set<Tv>`-like expected type can be analyzed right away
             if (collectionLiteralWithBoundsForFixation is CollectionLiteralBounds.NonTvExpected) {
@@ -155,7 +161,7 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
                         dependencyProvider,
                     )
 
-                    if (nextVariable != null && fixVariableIfReady(nextVariable, postponedArguments, analyzer))
+                    if (nextVariable != null && fixVariableIfReady(nextVariable))
                         continue@completion
                 }
 
@@ -177,7 +183,7 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
             ) continue
 
             // Stage 6: fix the next ready type variable with proper constraints
-            if (variableForFixation != null && fixVariableIfReady(variableForFixation, postponedArguments, analyzer))
+            if (variableForFixation != null && fixVariableIfReady(variableForFixation))
                 continue
 
             // Stage 7: try to complete call with the builder inference if there are uninferred type variables
@@ -214,8 +220,6 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
             // Force analysis of remaining not analyzed not-lambda-like postponed arguments
             // FULL mode only
             if (completionMode.allPostponedAtomsShouldBeAnalyzed) {
-                processRemainingContextSensitiveAlternatives(postponedArguments)
-
                 if (analyzeRemainingNotAnalyzedPostponedArgument(postponedArguments) {
                         analyzer.analyze(it)
                     }
@@ -302,81 +306,30 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
 
     private fun ConstraintSystemCompletionContext.fixVariableIfReady(
         variableForFixation: VariableFixationFinder.VariableForFixation,
-        postponedArguments: List<ConePostponedResolvedAtom>,
-        analyzer: PostponedAtomAnalyzer,
     ): Boolean {
         val variableWithConstraints = notFixedTypeVariables.getValue(variableForFixation.variable)
         if (!variableForFixation.isReady) return false
 
-        val resultType = inferenceComponents.resultTypeResolver.findResultType(
-            variableWithConstraints,
-            TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN
-        ) as ConeKotlinType
-
-        fixVariable(
-            variableWithConstraints.typeVariable,
-            resultType,
-            ConeFixVariableConstraintPosition(variableWithConstraints.typeVariable)
-        )
-
-        processPostponedAtomsDependingOnVariableFixation(
-            variableWithConstraints, resultType, postponedArguments, analyzer,
-        )
+        fixVariable(this, variableWithConstraints)
 
         return true
     }
 
-    private fun ConstraintSystemCompletionContext.processPostponedAtomsDependingOnVariableFixation(
-        variableWithConstraints: VariableWithConstraints,
-        resultType: ConeKotlinType,
-        postponedArguments: List<ConePostponedResolvedAtom>,
-        analyzer: PostponedAtomAnalyzer,
-    ) {
-        if (!languageVersionSettings.getFlag(AnalysisFlags.ideMode)) return
-
-        val wasEqualityToResult =
-            variableWithConstraints.constraints.any {
-                it.kind == ConstraintKind.EQUALITY && equalTypes(
-                    resultType,
-                    it.type as ConeKotlinType
-                ) && it.position.from !is FixVariableConstraintPosition<*>
-            }
-
-        for (atom in postponedArguments) {
-            if (atom is ConeContextSensitiveAlternativeForQualifierAtom && !atom.analyzed
-                && variableWithConstraints.typeVariable.freshTypeConstructor() == atom.expectedType.typeConstructor()
-            ) {
-                if (!wasEqualityToResult) {
-                    atom.markDiscarded()
-                } else {
-                    analyzer.analyze(atom, withPCLASession = false)
-                }
-            }
-        }
-    }
-
-    private fun ConstraintSystemCompletionContext.analyzeContextSensitiveResolutionAlternativesWithNonVariableTypes(
+    private fun analyzeContextSensitiveResolutionAlternatives(
         postponedArguments: List<ConePostponedResolvedAtom>,
         analyzer: PostponedAtomAnalyzer,
     ): Boolean {
+        if (!languageVersionSettings.getFlag(AnalysisFlags.ideMode)) return false
         var wasAny = false
 
         for (atom in postponedArguments) {
-            if (atom !is ConeContextSensitiveAlternativeForQualifierAtom) continue
-            if (atom.analyzed || atom.expectedType.typeConstructor().isTypeVariable()) continue
-            analyzer.analyze(atom, withPCLASession = false)
-            wasAny = true
+            if (atom is ConeContextSensitiveAlternativeForQualifierAtom) {
+                analyzer.analyze(atom, withPCLASession = false)
+                wasAny = true
+            }
         }
 
         return wasAny
-    }
-
-    private fun processRemainingContextSensitiveAlternatives(postponedArguments: List<ConePostponedResolvedAtom>) {
-        for (atom in postponedArguments) {
-            if (atom is ConeContextSensitiveAlternativeForQualifierAtom) {
-                atom.markDiscarded()
-            }
-        }
     }
 
     private fun ConstraintSystemCompletionContext.reportNotEnoughTypeInformation(
@@ -483,6 +436,21 @@ class ConstraintSystemCompleter(components: BodyResolveComponents) {
         }
 
         return result.toList()
+    }
+
+    private fun fixVariable(
+        c: ConstraintSystemCompletionContext,
+        variableWithConstraints: VariableWithConstraints,
+    ) {
+        val resultType = with(c) {
+            inferenceComponents.resultTypeResolver.findResultType(
+                variableWithConstraints,
+                TypeVariableDirectionCalculator.ResolveDirection.UNKNOWN
+            )
+        }
+
+        val variable = variableWithConstraints.typeVariable
+        c.fixVariable(variable, resultType, ConeFixVariableConstraintPosition(variable))
     }
 
     companion object {

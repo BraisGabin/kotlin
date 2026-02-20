@@ -27,7 +27,9 @@ import org.jetbrains.kotlin.resolve.calls.inference.addSubtypeConstraintIfCompat
 import org.jetbrains.kotlin.resolve.calls.inference.model.ConstraintStorage
 import org.jetbrains.kotlin.resolve.calls.inference.model.UnstableSystemMergeMode
 import org.jetbrains.kotlin.types.model.freshTypeConstructor
+import org.jetbrains.kotlin.types.model.isTypeVariable
 import org.jetbrains.kotlin.types.model.safeSubstitute
+import org.jetbrains.kotlin.types.model.typeConstructor
 
 data class ReturnArgumentsAnalysisResult(
     val returnArguments: Collection<ConeResolutionAtom>,
@@ -172,8 +174,14 @@ class PostponedArgumentsAnalyzer(
     private fun processSimpleNameForContextSensitiveResolutionIdeAlternative(
         atom: ConeContextSensitiveAlternativeForQualifierAtom,
         topLevelCandidate: Candidate,
-    ) {
+    ): Unit = context(session.typeContext) {
         check(!atom.analyzed)
+
+        if (atom.expectedType.typeConstructor().isTypeVariable()) {
+            atom.markDiscarded()
+            return
+        }
+
         atom.analyzed = true
 
         val substitutor = topLevelCandidate.csBuilder.buildCurrentSubstitutor(emptyMap()).asCone()
