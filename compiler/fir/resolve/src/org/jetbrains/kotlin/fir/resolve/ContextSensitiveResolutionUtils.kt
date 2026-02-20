@@ -103,14 +103,12 @@ private fun ConeDiagnostic.meansNoAvailableCandidate(): Boolean =
 /**
  * @receiver Resolved version of original FQ name
  */
-fun FirQualifierWithContextSensitiveAlternative.appendContextResolutionSensitiveHintIfNeeded(resolvedSimpleNameVersion: FirExpression?): Boolean {
-    val originalSymbol = when (this) {
-        is FirPropertyAccessExpression -> obtainSymbol()
-        is FirResolvedQualifier -> symbol
-        else -> error("Unexpected subclass of ${FirQualifierWithContextSensitiveAlternative::class.simpleName}: ${this::class.qualifiedName}")
-    } ?: return false
+fun FirQualifierWithContextSensitiveAlternative.appendCSRAlternativeDiagnosticIfNeeded(resolvedSimpleNameVersion: FirExpression?): Boolean {
+    check(this is FirExpression) {
+        "All inheritors of sealed FirQualifierWithContextSensitiveAlternative should be expressions, but ${this::class.simpleName} found"
+    }
 
-    if (originalSymbol != resolvedSimpleNameVersion?.obtainSymbol()) return false
+    if (obtainSymbol() != resolvedSimpleNameVersion?.obtainSymbol()) return false
 
     when (this) {
         is FirPropertyAccessExpression -> appendNonFatalDiagnostics(ContextSensitiveResolutionMightBeUsed)

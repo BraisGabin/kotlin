@@ -185,7 +185,7 @@ class PostponedArgumentsAnalyzer(
                 substitutedExpectedType,
             )
 
-        atom.originalExpression.appendContextResolutionSensitiveHintIfNeeded(resolvedShortNameExpression)
+        atom.originalExpression.appendCSRAlternativeDiagnosticIfNeeded(resolvedShortNameExpression)
         atom.originalExpression.replaceContextSensitiveAlternative(null)
     }
 

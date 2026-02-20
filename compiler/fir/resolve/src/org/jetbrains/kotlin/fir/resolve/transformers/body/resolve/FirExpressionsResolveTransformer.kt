@@ -314,7 +314,7 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
         when {
             mode is ResolutionMode.WithExpectedType || mode.hintForContextSensitiveResolution != null ->
                 runContextSensitiveResolutionIfNeeded(resolvedAlternative, mode, forceResolutionInIdeMode = true)?.let { resolvedCSR ->
-                    this.appendContextResolutionSensitiveHintIfNeeded(resolvedCSR)
+                    this.appendCSRAlternativeDiagnosticIfNeeded(resolvedCSR)
                 }
 
             mode is ResolutionMode.ContextDependent ->
@@ -358,7 +358,7 @@ open class FirExpressionsResolveTransformer(transformer: FirAbstractBodyResolveT
         forceResolutionInIdeMode: Boolean = false,
     ): FirExpression? {
         if (originalExpression !is FirPropertyAccessExpression) return null
-        if (!forceResolutionInIdeMode && !LanguageFeature.ContextSensitiveResolutionUsingExpectedType.isEnabled()) return null
+        if (!forceResolutionInIdeMode && LanguageFeature.ContextSensitiveResolutionUsingExpectedType.isDisabled()) return null
 
         val expectedType = data.hintForContextSensitiveResolution ?: data.expectedType ?: return null
 

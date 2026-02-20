@@ -22,11 +22,7 @@ import org.jetbrains.kotlin.fir.resolve.inference.ConeTypeVariableForLambdaRetur
 import org.jetbrains.kotlin.fir.resolve.shouldBeResolvedInContextSensitiveMode
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.utils.exceptions.withFirEntry
-import org.jetbrains.kotlin.resolve.calls.model.CollectionLiteralAtomMarker
-import org.jetbrains.kotlin.resolve.calls.model.LambdaWithTypeVariableAsExpectedTypeMarker
-import org.jetbrains.kotlin.resolve.calls.model.PostponedAtomWithRevisableExpectedType
-import org.jetbrains.kotlin.resolve.calls.model.PostponedCallableReferenceMarker
-import org.jetbrains.kotlin.resolve.calls.model.PostponedResolvedAtomMarker
+import org.jetbrains.kotlin.resolve.calls.model.*
 import org.jetbrains.kotlin.types.AbstractTypeChecker
 import org.jetbrains.kotlin.types.model.KotlinTypeMarker
 import org.jetbrains.kotlin.utils.addIfNotNull
@@ -381,7 +377,7 @@ class ConeSimpleNameForContextSensitiveResolution(
         get() = null
 }
 
-class ConeContextSensitiveAlternativeForQualifierAtom(
+class ConeContextSensitiveAlternativeForQualifierAtom @FirIdeOnly constructor(
     val originalExpression: FirQualifierWithContextSensitiveAlternative,
     val alternative: FirPropertyAccessExpression,
     override val expectedType: ConeKotlinType,
