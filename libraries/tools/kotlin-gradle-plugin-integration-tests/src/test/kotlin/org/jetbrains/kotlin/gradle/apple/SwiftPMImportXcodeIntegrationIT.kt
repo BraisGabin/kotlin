@@ -7,10 +7,12 @@ package org.jetbrains.kotlin.gradle.apple
 
 import org.gradle.kotlin.dsl.kotlin
 import org.gradle.util.GradleVersion
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.gradle.uklibs.applyMultiplatform
 import org.jetbrains.kotlin.gradle.uklibs.include
 import org.jetbrains.kotlin.gradle.util.isTeamCityRun
+import org.jetbrains.kotlin.gradle.util.replaceText
 import org.jetbrains.kotlin.gradle.util.runProcess
 import org.junit.jupiter.api.Assumptions
 import org.junit.jupiter.api.DisplayName
@@ -32,32 +34,7 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
     @GradleTest
     fun `integrateLinkagePackage task creates synthetic package`(version: GradleVersion) {
         project("emptyxcode", version) {
-            val localSwiftPackageRelativePath = "../localSwiftPackage"
-            createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
-
-            plugins {
-                kotlin("multiplatform")
-            }
-            buildScriptInjection {
-                project.applyMultiplatform {
-                    listOf(
-                        iosArm64(),
-                        iosSimulatorArm64()
-                    ).forEach {
-                        it.binaries.framework {
-                            baseName = "Shared"
-                            isStatic = true
-                        }
-                    }
-
-                    swiftPMDependencies {
-                        localPackage(
-                            directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
-                            products = listOf("LocalSwiftPackage"),
-                        )
-                    }
-                }
-            }
+            initDefaultKmpWithLocalSPM()
 
             val pbxFile = projectPath.resolve("iosApp/iosApp.xcodeproj/project.pbxproj")
             val manifestFile = projectPath.resolve("iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME/Package.swift")
@@ -89,9 +66,11 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
                     "productName = $SYNTHETIC_IMPORT_TARGET_MAGIC_NAME;",
                     message = "Swift package dependency should reference the synthetic product name"
                 )
-                assertFileContains(
-                    manifestFile,
-                    "type: .none",
+
+                assertEquals(
+                    SwiftPackageLibraryType.AUTOMATIC,
+                    describeSwiftPackage(manifestFile.parent).products.first().type.library?.first(),
+                    message = "Synthetic package product type should be '.none' when isStatic=true"
                 )
             }
         }
@@ -139,18 +118,15 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
                     manifestFile.exists(),
                     "Synthetic Package.swift should be generated"
                 )
-                val manifestContent = manifestFile.readText()
-                assertContains(
-                    manifestContent,
-                    "type: .dynamic",
+                assertEquals(
+                    SwiftPackageLibraryType.DYNAMIC,
+                    describeSwiftPackage(manifestFile.parent).products.first().type.library?.first(),
                     message = "Synthetic package product type should be '.dynamic' when isStatic=false"
                 )
                 // https://youtrack.jetbrains.com/issue/KT-82824/Make-linker-hack-path-relative
-                assertContains(
-                    manifestContent,
-                    "linkerSettings: [.unsafeFlags([\"-fuse-ld=${
-                        projectPath.toRealPath().absolutePathString()
-                    }/iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME/linkerHack\"])]",
+                assertEquals(
+                    "-fuse-ld=${projectPath.toRealPath().absolutePathString()}/iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME/linkerHack",
+                    dumpSwiftPackage(manifestFile.parent).getFirstUnsafeFlag(),
                     message = "Package.swift should have linker hack when isStatic=false"
                 )
             }
@@ -206,25 +182,27 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
                     manifestFile.exists(),
                     "Synthetic Package.swift should be generated"
                 )
-                val manifestContent = manifestFile.readText()
-                assertContains(
-                    manifestContent,
-                    ".iOS(\"16.4\")",
+                val packageDescription = describeSwiftPackage(manifestFile.parent)
+                val platforms = packageDescription.platforms.associateBy { it.name }
+
+                assertEquals(
+                    "16.4",
+                    platforms["ios"]?.version,
                     message = "Synthetic Package.swift should contain explicitly configured iOS deployment version"
                 )
-                assertContains(
-                    manifestContent,
-                    ".macOS(\"14.6\")",
+                assertEquals(
+                    "14.6",
+                    platforms["macos"]?.version,
                     message = "Synthetic Package.swift should contain explicitly configured macOS deployment version"
                 )
-                assertContains(
-                    manifestContent,
-                    ".tvOS(\"18.6\")",
+                assertEquals(
+                    "18.6",
+                    platforms["tvos"]?.version,
                     message = "Synthetic Package.swift should contain explicitly configured tvOS deployment version"
                 )
-                assertContains(
-                    manifestContent,
-                    ".watchOS(\"11.6\")",
+                assertEquals(
+                    "11.6",
+                    platforms["watchos"]?.version,
                     message = "Synthetic Package.swift should contain explicitly configured watchOS deployment version"
                 )
             }
@@ -234,9 +212,6 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
     @GradleTest
     fun `integrateLinkagePackage passes different version types correctly`(version: GradleVersion) {
         project("emptyxcode", version) {
-            val localSwiftPackageRelativePath = "../localSwiftPackage"
-            createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
-
             plugins {
                 kotlin("multiplatform")
             }
@@ -349,8 +324,6 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
                     .readText()
                     .replace(Regex("\\s+"), " ")
 
-                println(manifestContent)
-
                 assertContains(
                     manifestContent, ".product( name: \"AWSS3\", package: \"aws-sdk-ios-spm\", condition: .when(platforms: [.iOS]), ),",
                     message = "AWSS3 product should have iOS platform condition"
@@ -376,32 +349,7 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
     @GradleTest
     fun `integrateLinkagePackage task base idempotency check`(version: GradleVersion) {
         project("emptyxcode", version) {
-            val localSwiftPackageRelativePath = "../localSwiftPackage"
-            createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
-
-            plugins {
-                kotlin("multiplatform")
-            }
-            buildScriptInjection {
-                project.applyMultiplatform {
-                    listOf(
-                        iosArm64(),
-                        iosSimulatorArm64()
-                    ).forEach {
-                        it.binaries.framework {
-                            baseName = "Shared"
-                            isStatic = true
-                        }
-                    }
-
-                    swiftPMDependencies {
-                        localPackage(
-                            directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
-                            products = listOf("LocalSwiftPackage"),
-                        )
-                    }
-                }
-            }
+            initDefaultKmpWithLocalSPM()
 
             build(
                 "integrateLinkagePackage",
@@ -425,9 +373,11 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
     @GradleTest
     fun `integrateLinkagePackage reruns synthetic manifest generation when new Package is added`(version: GradleVersion) {
         project("emptyxcode", version) {
+            val includeSecondPackageProp = "includeSecondPackage"
             val localSwiftPackageRelativePath = "../localSwiftPackage"
             val secondLocalSwiftPackageRelativePath = "../secondLocalSwiftPackage"
             createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
+            createLocalSwiftPackage(projectPath.resolve(secondLocalSwiftPackageRelativePath), packageName = "SecondLocalSwiftPackage")
 
             plugins {
                 kotlin("multiplatform")
@@ -449,95 +399,11 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
                             directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
                             products = listOf("LocalSwiftPackage"),
                         )
-                    }
-                }
-            }
-
-            val manifestFile = projectPath.resolve("iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME/Package.swift")
-
-            build(
-                "integrateLinkagePackage",
-                environmentVariables = EnvironmentalVariables(
-                    "XCODEPROJ_PATH" to "iosApp/iosApp.xcodeproj",
-                )
-            ) {
-                val firstManifest = manifestFile.readText()
-                assertContains(firstManifest, "path: \"../../../localSwiftPackage\"", message = "localPackage added in the first run")
-                assertFalse(
-                    firstManifest.contains("path: \"../../../secondLocalSwiftPackage\""),
-                    "secondLocalSwiftPackage is not added yet"
-                )
-                assertFalse(firstManifest.contains("name: \"SecondLocalSwiftPackage\""), "SecondLocalSwiftPackage is not added yet")
-            }
-
-            createLocalSwiftPackage(
-                projectPath.resolve(secondLocalSwiftPackageRelativePath),
-                packageName = "SecondLocalSwiftPackage",
-            )
-            buildScriptInjection {
-                project.applyMultiplatform {
-                    swiftPMDependencies {
-                        localPackage(
-                            directory = project.layout.projectDirectory.dir(secondLocalSwiftPackageRelativePath),
-                            products = listOf("SecondLocalSwiftPackage"),
-                        )
-                        `package`(
-                            url = url("https://github.com/apple/swift-protobuf.git"),
-                            version = exact("1.32.0"),
-                            products = listOf(),
-                        )
-                    }
-                }
-            }
-
-            build(
-                "integrateLinkagePackage",
-                environmentVariables = EnvironmentalVariables(
-                    "XCODEPROJ_PATH" to "iosApp/iosApp.xcodeproj",
-                )
-            ) {
-                val secondManifest = manifestFile.readText()
-                assertContains(secondManifest, "path: \"../../../localSwiftPackage\"")
-                assertContains(secondManifest, "path: \"../../../secondLocalSwiftPackage\"")
-                assertContains(secondManifest, "name: \"SecondLocalSwiftPackage\"")
-                assertContains(secondManifest, "package: \"secondLocalSwiftPackage\"")
-                assertContains(secondManifest, "url: \"https://github.com/apple/swift-protobuf.git\"")
-            }
-        }
-    }
-
-
-    @Ignore("https://youtrack.jetbrains.com/issue/KT-82823/Remove-stale-targets-from-the-linkage-package")
-    @GradleTest
-    fun `integrateLinkagePackage reruns synthetic manifest generation when Package is removed`(version: GradleVersion) {
-        project("emptyxcode", version) {
-            val localSwiftPackageRelativePath = "../localSwiftPackage"
-            createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
-
-            plugins {
-                kotlin("multiplatform")
-            }
-
-            var includeSecondPackage = true
-
-            buildScriptInjection {
-                project.applyMultiplatform {
-                    listOf(
-                        iosArm64(),
-                        iosSimulatorArm64()
-                    ).forEach {
-                        it.binaries.framework {
-                            baseName = "Shared"
-                            isStatic = true
-                        }
-                    }
-
-                    swiftPMDependencies {
-                        localPackage(
-                            directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
-                            products = listOf("LocalSwiftPackage"),
-                        )
-                        if (includeSecondPackage) {
+                        if (project.hasProperty(includeSecondPackageProp)) {
+                            localPackage(
+                                directory = project.layout.projectDirectory.dir(secondLocalSwiftPackageRelativePath),
+                                products = listOf("SecondLocalSwiftPackage"),
+                            )
                             `package`(
                                 url = url("https://github.com/apple/swift-protobuf.git"),
                                 version = exact("1.32.0"),
@@ -556,53 +422,56 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
                     "XCODEPROJ_PATH" to "iosApp/iosApp.xcodeproj",
                 )
             ) {
-                val firstManifest = manifestFile.readText()
-                assertContains(
-                    firstManifest,
-                    "path: \"../../../localSwiftPackage\"",
+                val dependencies = describeSwiftPackage(manifestFile.parent).dependencies
+                assertTrue(
+                    dependencies.any { it.identity.equals("LocalSwiftPackage", ignoreCase = true) },
                     message = "localPackage added in the first run"
                 )
-                assertContains(
-                    firstManifest,
-                    "url: \"https://github.com/apple/swift-protobuf.git\",",
-                    message = "swift-protobuf added in the first run"
+                assertTrue(
+                    dependencies.none { it.identity.equals("SecondLocalSwiftPackage", ignoreCase = true) },
+                    message = "SecondLocalSwiftPackage is not here in the first run "
+                )
+                assertTrue(
+                    dependencies.none { it.url == "https://github.com/apple/swift-protobuf.git" },
+                    message = "external dependency is not here in the first run"
                 )
             }
 
-            // Remove the second package from configuration
-            includeSecondPackage = false
-
             build(
-                "integrateLinkagePackage",
+                "integrateLinkagePackage", "-P${includeSecondPackageProp}=true",
                 environmentVariables = EnvironmentalVariables(
                     "XCODEPROJ_PATH" to "iosApp/iosApp.xcodeproj",
                 )
             ) {
-                assertTasksExecuted(":integrateLinkagePackage")
-
-                val secondManifest = manifestFile.readText()
-                assertContains(
-                    secondManifest,
-                    "path: \"../../../localSwiftPackage\"", message = "localPackage is still here after second run "
+                val dependencies = describeSwiftPackage(manifestFile.parent).dependencies
+                assertTrue(
+                    dependencies.any { it.identity.equals("LocalSwiftPackage", ignoreCase = true) },
+                    message = "localPackage is here in the second run"
                 )
-                assertContains(
-                    secondManifest,
-                    "url: \"https://github.com/apple/swift-protobuf.git\",",
-                    message = "swift-protobuf is gone after second run "
+                assertTrue(
+                    dependencies.any { it.identity.equals("SecondLocalSwiftPackage", ignoreCase = true) },
+                    message = "SecondLocalSwiftPackage is here in the second run"
+                )
+                assertTrue(
+                    dependencies.any { it.url == "https://github.com/apple/swift-protobuf.git" },
+                    message = "external is here in the second run"
                 )
             }
         }
     }
 
+
     @GradleTest
-    fun `integrateLinkagePackage collects dependencies from multiple subprojects`(version: GradleVersion) {
+    fun `integrateLinkagePackage reruns synthetic manifest generation when Package is removed`(version: GradleVersion) {
         project("emptyxcode", version) {
+            val includeSecondPackageProp = "includeSecondPackage"
             val localSwiftPackageRelativePath = "../localSwiftPackage"
             createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
 
             plugins {
                 kotlin("multiplatform")
             }
+
             buildScriptInjection {
                 project.applyMultiplatform {
                     listOf(
@@ -615,17 +484,69 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
                         }
                     }
 
-                    sourceSets.commonMain.dependencies {
-                        api(project(":subprojectA"))
-                        api(project(":subprojectB"))
-                    }
-
                     swiftPMDependencies {
                         localPackage(
                             directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
                             products = listOf("LocalSwiftPackage"),
                         )
+                        if (project.hasProperty(includeSecondPackageProp)) {
+                            `package`(
+                                url = url("https://github.com/apple/swift-protobuf.git"),
+                                version = exact("1.32.0"),
+                                products = listOf(),
+                            )
+                        }
                     }
+                }
+            }
+
+            val manifestFile = projectPath.resolve("iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME/Package.swift")
+
+            build(
+                "integrateLinkagePackage", "-P${includeSecondPackageProp}=true",
+                environmentVariables = EnvironmentalVariables(
+                    "XCODEPROJ_PATH" to "iosApp/iosApp.xcodeproj",
+                )
+            ) {
+                val dependencies = describeSwiftPackage(manifestFile.parent).dependencies
+                assertTrue(
+                    dependencies.any { it.identity == "localswiftpackage" },
+                    message = "localPackage is here in the first run"
+                )
+                assertTrue(
+                    dependencies.any { it.url == "https://github.com/apple/swift-protobuf.git" },
+                    message = "external dependency is here in the first run"
+                )
+            }
+
+            build(
+                "integrateLinkagePackage",
+                environmentVariables = EnvironmentalVariables(
+                    "XCODEPROJ_PATH" to "iosApp/iosApp.xcodeproj",
+                )
+            ) {
+                assertTasksExecuted(":integrateLinkagePackage")
+
+                val dependencies = describeSwiftPackage(manifestFile.parent).dependencies
+                assertTrue(
+                    dependencies.any { it.identity == "localswiftpackage" },
+                    message = "localPackage is still here after the second run"
+                )
+                assertTrue(
+                    dependencies.none { it.url == "https://github.com/apple/swift-protobuf.git" },
+                    message = "external is not here after the second run"
+                )
+            }
+        }
+    }
+
+    @GradleTest
+    fun `integrateLinkagePackage collects dependencies from multiple subprojects`(version: GradleVersion) {
+        project("emptyxcode", version) {
+            initDefaultKmpWithLocalSPM {
+                sourceSets.commonMain.dependencies {
+                    api(project(":subprojectA"))
+                    api(project(":subprojectB"))
                 }
             }
 
@@ -707,35 +628,107 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
         }
     }
 
+    @Ignore("TODO: investigate why packageRoot and SPM absolute path a differ")
     @GradleTest
-    fun `integrateLinkagePackage accepts absolute XCODEPROJ_PATH`(version: GradleVersion) {
+    fun `integrateLinkagePackage with non root project`(version: GradleVersion) {
         project("emptyxcode", version) {
-            val localSwiftPackageRelativePath = "../localSwiftPackage"
+            val localSwiftPackageRelativePath = "localSwiftPackage"
             createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
 
             plugins {
-                kotlin("multiplatform")
+                kotlin("multiplatform").apply(false)
             }
-            buildScriptInjection {
-                project.applyMultiplatform {
-                    listOf(
-                        iosArm64(),
-                        iosSimulatorArm64()
-                    ).forEach {
-                        it.binaries.framework {
-                            baseName = "Shared"
-                            isStatic = true
-                        }
-                    }
 
-                    swiftPMDependencies {
-                        localPackage(
-                            directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
-                            products = listOf("LocalSwiftPackage"),
-                        )
+            val subprojectA = project("empty", version) {
+                buildScriptInjection {
+                    project.applyMultiplatform {
+                        listOf(
+                            iosArm64(),
+                            iosSimulatorArm64()
+                        ).forEach {
+                            it.binaries.framework {
+                                baseName = "Shared"
+                                isStatic = true
+                            }
+                        }
+
+                        sourceSets.commonMain.dependencies {
+                            api(project(":subprojectB"))
+                        }
+
+                        swiftPMDependencies {
+                            localPackage(
+                                directory = project.layout.projectDirectory.dir("../$localSwiftPackageRelativePath"),
+                                products = listOf("LocalSwiftPackage"),
+                            )
+                        }
                     }
                 }
             }
+
+            val subprojectB = project("empty", version) {
+                buildScriptInjection {
+                    project.applyMultiplatform {
+                        iosArm64()
+                        iosSimulatorArm64()
+
+                        swiftPMDependencies {
+                            `package`(
+                                url = url("https://github.com/apple/swift-protobuf.git"),
+                                version = exact("1.32.0"),
+                                products = listOf(),
+                            )
+                        }
+                    }
+                }
+            }
+
+            include(subprojectA, "subprojectA", useSymlink = false)
+            include(subprojectB, "subprojectB", useSymlink = false)
+
+            val iosAppDir = projectPath.resolve("iosApp/iosApp.xcodeproj")
+            iosAppDir.resolve("project.pbxproj")
+                .replaceText(":embedAndSignAppleFrameworkForXcode", ":subprojectA:embedAndSignAppleFrameworkForXcode")
+
+            build(
+                ":subprojectA:integrateLinkagePackage",
+                environmentVariables = EnvironmentalVariables(
+                    "XCODEPROJ_PATH" to iosAppDir.absolutePathString(),
+                )
+            ) {
+
+                assertTrue(
+                    projectPath.resolve("iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME").exists(),
+                    "Expected to find created synthetic target directory"
+                )
+
+                val manifest = projectPath.resolve("iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME/Package.swift").readText()
+
+                assertContains(
+                    manifest,
+                    "path: \"../$localSwiftPackageRelativePath\"",
+                    message = "Manifest should contain localSwiftPackage from root project level"
+                )
+
+                assertContains(
+                    manifest,
+                    ".package(path: \"subpackages/_subprojectB\")",
+                    message = "Manifest should contain subprojectB from root project"
+                )
+
+                assertContains(
+                    projectPath.resolve("iosApp/$SYNTHETIC_IMPORT_TARGET_MAGIC_NAME/subpackages/_subprojectB/Package.swift").readText(),
+                    "https://github.com/apple/swift-protobuf.git",
+                    message = "Manifest should contain subprojectB dependency"
+                )
+            }
+        }
+    }
+
+    @GradleTest
+    fun `integrateLinkagePackage accepts absolute XCODEPROJ_PATH`(version: GradleVersion) {
+        project("emptyxcode", version) {
+            initDefaultKmpWithLocalSPM()
 
             val pbxFile = projectPath.resolve("iosApp/iosApp.xcodeproj/project.pbxproj")
             val absoluteXcodeprojPath = projectPath.resolve("iosApp/iosApp.xcodeproj").toAbsolutePath().toString()
@@ -756,32 +749,7 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
     @GradleTest
     fun `integrateLinkagePackage fails when embed-and-sign phase is absent`(version: GradleVersion) {
         project("emptyxcode-no-embedandsign", version) {
-            val localSwiftPackageRelativePath = "../localSwiftPackage"
-            createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
-
-            plugins {
-                kotlin("multiplatform")
-            }
-            buildScriptInjection {
-                project.applyMultiplatform {
-                    listOf(
-                        iosArm64(),
-                        iosSimulatorArm64()
-                    ).forEach {
-                        it.binaries.framework {
-                            baseName = "Shared"
-                            isStatic = true
-                        }
-                    }
-
-                    swiftPMDependencies {
-                        localPackage(
-                            directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
-                            products = listOf("LocalSwiftPackage"),
-                        )
-                    }
-                }
-            }
+            initDefaultKmpWithLocalSPM()
 
             buildAndFail(
                 "integrateLinkagePackage",
@@ -802,32 +770,7 @@ class SwiftPMImportXcodeIntegrationIT : KGPBaseTest() {
         }
 
         project("emptyxcode", version) {
-            val localSwiftPackageRelativePath = "../localSwiftPackage"
-            createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
-
-            plugins {
-                kotlin("multiplatform")
-            }
-            buildScriptInjection {
-                project.applyMultiplatform {
-                    listOf(
-                        iosArm64(),
-                        iosSimulatorArm64()
-                    ).forEach {
-                        it.binaries.framework {
-                            baseName = "Shared"
-                            isStatic = true
-                        }
-                    }
-
-                    swiftPMDependencies {
-                        localPackage(
-                            directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
-                            products = listOf("LocalSwiftPackage"),
-                        )
-                    }
-                }
-            }
+            initDefaultKmpWithLocalSPM()
 
             val symlinkedDeveloperDir = createSymlinkedDeveloperDir(projectPath)
             val xcodeSelectOutput = runProcess(
@@ -868,3 +811,37 @@ private fun createSymlinkedDeveloperDir(projectPath: Path): Path {
 
     return symlinkedDeveloperDir
 }
+
+private fun TestProject.initDefaultKmpWithLocalSPM(extra: KotlinMultiplatformExtension.() -> Unit = {}) {
+    val localSwiftPackageRelativePath = "../localSwiftPackage"
+    createLocalSwiftPackage(projectPath.resolve(localSwiftPackageRelativePath))
+
+    plugins {
+        kotlin("multiplatform")
+    }
+    buildScriptInjection {
+        project.applyMultiplatform {
+            listOf(
+                iosArm64(),
+                iosSimulatorArm64()
+            ).forEach {
+                it.binaries.framework {
+                    baseName = "Shared"
+                    isStatic = true
+                }
+            }
+
+            swiftPMDependencies {
+                localPackage(
+                    directory = project.layout.projectDirectory.dir(localSwiftPackageRelativePath),
+                    products = listOf("LocalSwiftPackage"),
+                )
+            }
+
+            extra()
+        }
+    }
+}
+
+private fun SwiftPackageDump.getFirstUnsafeFlag() =
+    targets.first().settings.first().kind.unsafeFlags?.flags?.first()
