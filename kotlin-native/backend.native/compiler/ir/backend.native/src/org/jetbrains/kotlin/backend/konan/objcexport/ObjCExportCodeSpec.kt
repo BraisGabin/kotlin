@@ -202,16 +202,16 @@ internal fun ObjCExportCodeSpec.dumpSelectorToSignatureMapping(path: String, sig
             for (mapping in type.methods.filter { it.isInstanceMethod() }) {
                 out.println(mapping.getMapping(type.binaryName, overrides) ?: continue)
             }
+            if (type is ObjCClassForKotlinClass) {
+                for (mapping in type.categoryMethods) {
+                    out.println(mapping.getMapping(type.binaryName, emptyMap()) ?: continue)
+                }
+            }
         }
         out.println("\n# Class methods mapping")
         for (type in types) {
             for (mapping in type.methods.filterNot { it.isInstanceMethod() }) {
                 out.println(mapping.getMapping(type.binaryName, emptyMap()) ?: continue)
-            }
-            if (type is ObjCClassForKotlinClass) {
-                for (mapping in type.categoryMethods) {
-                    out.println(mapping.getMapping(type.binaryName, emptyMap()) ?: continue)
-                }
             }
         }
         for (file in files) {
