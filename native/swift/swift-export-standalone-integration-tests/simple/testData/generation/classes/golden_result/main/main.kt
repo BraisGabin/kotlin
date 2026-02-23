@@ -226,6 +226,13 @@ public fun ENUM_INSIDE_ENUM_init_initialize__TypesOfArguments__Swift_UnsafeMutab
     kotlin.native.internal.initInstance(____kt, ENUM.INSIDE_ENUM())
 }
 
+@ExportedBridge("ENUM_ordinal")
+public fun ENUM_ordinal(self: kotlin.native.internal.NativePtr): Int {
+    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as ENUM
+    val _result = __self.ordinal
+    return _result
+}
+
 @ExportedBridge("Foo_Companion_get")
 public fun Foo_Companion_get(): kotlin.native.internal.NativePtr {
     val _result = Foo.Companion

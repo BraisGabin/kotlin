@@ -22,6 +22,13 @@ public fun EnumSimple_SECOND(): kotlin.native.internal.NativePtr {
     return kotlin.native.internal.ref.createRetainedExternalRCRef(_result)
 }
 
+@ExportedBridge("EnumSimple_ordinal")
+public fun EnumSimple_ordinal(self: kotlin.native.internal.NativePtr): Int {
+    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as EnumSimple
+    val _result = __self.ordinal
+    return _result
+}
+
 @ExportedBridge("EnumWithAbstractMembers_MAGENTA")
 public fun EnumWithAbstractMembers_MAGENTA(): kotlin.native.internal.NativePtr {
     val _result = EnumWithAbstractMembers.MAGENTA
@@ -51,6 +58,13 @@ public fun EnumWithAbstractMembers_blue(self: kotlin.native.internal.NativePtr):
 public fun EnumWithAbstractMembers_green(self: kotlin.native.internal.NativePtr): Int {
     val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as EnumWithAbstractMembers
     val _result = __self.green()
+    return _result
+}
+
+@ExportedBridge("EnumWithAbstractMembers_ordinal")
+public fun EnumWithAbstractMembers_ordinal(self: kotlin.native.internal.NativePtr): Int {
+    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as EnumWithAbstractMembers
+    val _result = __self.ordinal
     return _result
 }
 
@@ -94,6 +108,13 @@ public fun EnumWithMembers_isNorth_get(self: kotlin.native.internal.NativePtr): 
     return _result
 }
 
+@ExportedBridge("EnumWithMembers_ordinal")
+public fun EnumWithMembers_ordinal(self: kotlin.native.internal.NativePtr): Int {
+    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as EnumWithMembers
+    val _result = __self.ordinal
+    return _result
+}
+
 @ExportedBridge("Enum_a")
 public fun Enum_a(): kotlin.native.internal.NativePtr {
     val _result = Enum.a
@@ -118,6 +139,13 @@ public fun Enum_i_set__TypesOfArguments__Swift_Int32__(self: kotlin.native.inter
     val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as Enum
     val __newValue = newValue
     __self.i = __newValue
+}
+
+@ExportedBridge("Enum_ordinal")
+public fun Enum_ordinal(self: kotlin.native.internal.NativePtr): Int {
+    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as Enum
+    val _result = __self.ordinal
+    return _result
 }
 
 @ExportedBridge("Enum_print")

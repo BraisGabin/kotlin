@@ -7,6 +7,8 @@ int32_t ClassWithFactoryWithoutParameters_value_get(void * self);
 
 void * EnumWithFactory_ONE();
 
+int32_t EnumWithFactory_ordinal(void * self);
+
 void * __root___ClassWithFactoryWithoutParameters();
 
 void * __root___ClassWithFactoryWithoutParameters_init_allocate();

@@ -171,6 +171,8 @@ void __root___var_object_wp_set__TypesOfArguments__ExportedKotlinPackages_namesp
 
 void * ignored_ENUM_A();
 
+int32_t ignored_ENUM_ordinal(void * self);
+
 void * ignored_produce_ENUM();
 
 void ignored_receive_ENUM__TypesOfArguments__ExportedKotlinPackages_ignored_ENUM__(void * x);

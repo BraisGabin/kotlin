@@ -9,6 +9,8 @@ void * EnumSimple_LAST();
 
 void * EnumSimple_SECOND();
 
+int32_t EnumSimple_ordinal(void * self);
+
 void * EnumWithAbstractMembers_MAGENTA();
 
 void * EnumWithAbstractMembers_SKY();
@@ -18,6 +20,8 @@ void * EnumWithAbstractMembers_YELLOW();
 int32_t EnumWithAbstractMembers_blue(void * self);
 
 int32_t EnumWithAbstractMembers_green(void * self);
+
+int32_t EnumWithAbstractMembers_ordinal(void * self);
 
 int32_t EnumWithAbstractMembers_ordinalSquare(void * self);
 
@@ -31,6 +35,8 @@ NSString * EnumWithMembers_foo(void * self);
 
 _Bool EnumWithMembers_isNorth_get(void * self);
 
+int32_t EnumWithMembers_ordinal(void * self);
+
 void * Enum_a();
 
 void * Enum_b();
@@ -38,6 +44,8 @@ void * Enum_b();
 int32_t Enum_i_get(void * self);
 
 void Enum_i_set__TypesOfArguments__Swift_Int32__(void * self, int32_t newValue);
+
+int32_t Enum_ordinal(void * self);
 
 NSString * Enum_print(void * self);
 

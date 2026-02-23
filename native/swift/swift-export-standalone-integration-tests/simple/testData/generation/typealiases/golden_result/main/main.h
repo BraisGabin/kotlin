@@ -47,6 +47,8 @@ void * ENUM_INSIDE_ENUM_init_allocate();
 
 void ENUM_INSIDE_ENUM_init_initialize__TypesOfArguments__Swift_UnsafeMutableRawPointer__(void * __kt);
 
+int32_t ENUM_ordinal(void * self);
+
 _Bool OBJECT_WITH_GENERIC_INHERITANCE_hasNext(void * self);
 
 _Bool OBJECT_WITH_GENERIC_INHERITANCE_hasPrevious(void * self);

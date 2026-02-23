@@ -574,6 +574,13 @@ public fun ignored_ENUM_A(): kotlin.native.internal.NativePtr {
     return kotlin.native.internal.ref.createRetainedExternalRCRef(_result)
 }
 
+@ExportedBridge("ignored_ENUM_ordinal")
+public fun ignored_ENUM_ordinal(self: kotlin.native.internal.NativePtr): Int {
+    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as ignored.ENUM
+    val _result = __self.ordinal
+    return _result
+}
+
 @ExportedBridge("ignored_produce_ENUM")
 public fun ignored_produce_ENUM(): kotlin.native.internal.NativePtr {
     val _result = ignored.produce_ENUM()

@@ -24,6 +24,13 @@ public fun EnumWithFactory_ONE(): kotlin.native.internal.NativePtr {
     return kotlin.native.internal.ref.createRetainedExternalRCRef(_result)
 }
 
+@ExportedBridge("EnumWithFactory_ordinal")
+public fun EnumWithFactory_ordinal(self: kotlin.native.internal.NativePtr): Int {
+    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as EnumWithFactory
+    val _result = __self.ordinal
+    return _result
+}
+
 @ExportedBridge("__root___ClassWithFactoryWithoutParameters")
 public fun __root___ClassWithFactoryWithoutParameters(): kotlin.native.internal.NativePtr {
     val _result = ClassWithFactoryWithoutParameters()

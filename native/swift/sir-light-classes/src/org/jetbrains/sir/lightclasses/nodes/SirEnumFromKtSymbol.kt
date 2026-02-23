@@ -10,6 +10,8 @@ import org.jetbrains.kotlin.analysis.api.symbols.KaEnumEntrySymbol
 import org.jetbrains.kotlin.analysis.api.symbols.KaNamedClassSymbol
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.sir.CFunctionBridge
+import org.jetbrains.kotlin.sir.KotlinFunctionBridge
 import org.jetbrains.kotlin.sir.SirAttribute
 import org.jetbrains.kotlin.sir.SirBridge
 import org.jetbrains.kotlin.sir.SirDeclaration
@@ -17,6 +19,7 @@ import org.jetbrains.kotlin.sir.SirDeclarationParent
 import org.jetbrains.kotlin.sir.SirEnum
 import org.jetbrains.kotlin.sir.SirEnumCase
 import org.jetbrains.kotlin.sir.SirFunction
+import org.jetbrains.kotlin.sir.SirFunctionBridge
 import org.jetbrains.kotlin.sir.SirFunctionBody
 import org.jetbrains.kotlin.sir.SirInit
 import org.jetbrains.kotlin.sir.SirNominalType
@@ -112,20 +115,49 @@ private class SirEnumFromKtSymbol(
         failableInitFromInteger(),
     )
 
+    private fun ordinalBridgeName(): String =
+        "${ktSymbol.classId!!.underscoredRepresentation()}_ordinal"
+
+    private fun createOrdinalBridge(): SirFunctionBridge {
+        val bridgeName = ordinalBridgeName()
+        val enumFqName = ktSymbol.classId!!.asSingleFqName().asString()
+        return SirFunctionBridge(
+            name = bridgeName,
+            kotlinFunctionBridge = KotlinFunctionBridge(
+                lines = listOf(
+                    "@ExportedBridge(\"$bridgeName\")",
+                    "public fun $bridgeName(self: kotlin.native.internal.NativePtr): Int {",
+                    "    val __self = kotlin.native.internal.ref.dereferenceExternalRCRef(self) as $enumFqName",
+                    "    val _result = __self.ordinal",
+                    "    return _result",
+                    "}"
+                ),
+                packageDependencies = listOf("kotlin.native.internal.ExportedBridge")
+            ),
+            cDeclarationBridge = CFunctionBridge(
+                lines = listOf("int32_t $bridgeName(void * self);"),
+                headerDependencies = listOf("stdint.h")
+            )
+        )
+    }
+
     private fun kotlinBaseInitDeclaration(): SirDeclaration = buildInitCopy(KotlinRuntimeModule.kotlinBaseDesignatedInit) {
         origin = SirOrigin.KotlinBaseInitOverride(`for` = KotlinSource(ktSymbol))
         parameters[0] = SirParameter(
             argumentName = "__externalRCRefUnsafe",
             type = unsafeMutableRawPointerFlexibleType()
         )
+        bridges.add(createOrdinalBridge())
+        val ordinalBridgeName = ordinalBridgeName()
         val separator = "\n                    "
+        var index = 0
         val caseSelector = cases.joinToString(separator = separator) {
-            "case ${it.nativeCaseRepresentation(ktSymbol)}: self = .${it.name}"
+            "case ${index++}: self = .${it.name}"
         } + defaultBranch(separator)
         body = SirFunctionBody(
             listOf(
                 """
-                    switch __externalRCRefUnsafe {
+                    switch $ordinalBridgeName(__externalRCRefUnsafe) {
                     $caseSelector
                     }
                 """.trimIndent()
@@ -248,6 +280,24 @@ internal fun createSirEnumCaseFromKtSymbol(
     sirSession
 )
 
+private fun ClassId.underscoredRepresentation(): String = buildString {
+    if (!packageFqName.isRoot) {
+        appendUnderscoredRepresentation(packageFqName)
+        append("_")
+    }
+    appendUnderscoredRepresentation(relativeClassName)
+}
+
+private fun StringBuilder.appendUnderscoredRepresentation(fqName: FqName) {
+    if (fqName.isRoot) return
+    val parent = fqName.parent()
+    if (!parent.isRoot) {
+        appendUnderscoredRepresentation(parent)
+        append("_")
+    }
+    append(fqName.shortName().asString())
+}
+
 private class SirEnumCaseFromKtSymbol(
     override val ktSymbol: KaEnumEntrySymbol,
     override val sirSession: SirSession,
@@ -269,24 +319,6 @@ private class SirEnumCaseFromKtSymbol(
 
     fun nativeCaseRepresentation(enumSymbol: KaNamedClassSymbol): String =
         "${enumSymbol.classId!!.underscoredRepresentation()}_$name()"
-
-    private fun ClassId.underscoredRepresentation(): String = buildString {
-        if (!packageFqName.isRoot) {
-            appendUnderscoredRepresentation(packageFqName)
-            append("_")
-        }
-        appendUnderscoredRepresentation(relativeClassName)
-    }
-
-    private fun StringBuilder.appendUnderscoredRepresentation(fqName: FqName) {
-        if (fqName.isRoot) return
-        val parent = fqName.parent()
-        if (!parent.isRoot) {
-            appendUnderscoredRepresentation(parent)
-            append("_")
-        }
-        append(fqName.shortName().asString())
-    }
 
     private val bridgeProxy: BridgeFunctionProxy? by lazyWithSessions {
         val fqName = bridgeFqName ?: return@lazyWithSessions null
