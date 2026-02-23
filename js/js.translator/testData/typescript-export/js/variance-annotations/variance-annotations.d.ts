@@ -33,5 +33,16 @@ declare namespace JS_TESTS {
                 const constructor: abstract new <T>() => Invariant<T>;
             }
         }
+        class UnsafeCovariant<out T> {
+            constructor(value: T);
+            get value(): T;
+            consume(value: T): void;
+        }
+        namespace UnsafeCovariant {
+            /** @deprecated $metadata$ is used for internal purposes, please don't use it in your code, because it can be removed at any moment */
+            namespace $metadata$ {
+                const constructor: abstract new <T>() => UnsafeCovariant<T>;
+            }
+        }
     }
 }

@@ -17,3 +17,8 @@ class Contravariant<in T> {
 
 @JsExport
 class Invariant<T>(var value: T)
+
+@JsExport
+class UnsafeCovariant<out T>(val value: T) {
+    fun consume(value: @UnsafeVariance T) {}
+}
