@@ -1,7 +1,5 @@
 import gradle.GradlePluginVariant
-import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.kotlin.build.androidsdkprovisioner.ProvisioningType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.AbstractKotlinCompile
@@ -612,9 +610,23 @@ tasks.register<Sync>("collectKoverIcReports") {
     outputs.dir(combinedReportsDir)
 }
 
-tasks.register<JavaExec>("koverCustomHtmlReport") {
+/**
+ * Configuration for Kover report generation tasks.
+ */
+class KoverReportConfig(
+    val reportType: String,
+    val reportDir: Provider<RegularFile>,
+    val extraArgs: List<String> = emptyList(),
+    val reportMessage: String,
+)
+
+fun TaskContainer.registerKoverReportTask(
+    taskName: String,
+    description: String,
+    config: KoverReportConfig,
+) = register<JavaExec>(taskName) {
     group = KGP_TEST_TASKS_GROUP
-    description = "Generate HTML coverage report from Kover TestKit data using kover-cli"
+    this.description = description
 
     dependsOn("collectKoverIcReports")
 
@@ -622,8 +634,6 @@ tasks.register<JavaExec>("koverCustomHtmlReport") {
     val kgpApiProject = project(":kotlin-gradle-plugin-api")
 
     val koverReportsDir = layout.buildDirectory.dir("kover/combined-ic")
-    val htmlReportDir = layout.buildDirectory.dir("reports/kover/html")
-    val reportTitle = "Kotlin Gradle Plugin Integration Tests Coverage"
 
     val classesDirs = listOf(
         kgpProject.layout.buildDirectory.dir("classes/kotlin"),
@@ -639,9 +649,8 @@ tasks.register<JavaExec>("koverCustomHtmlReport") {
     val koverReportFiles = koverReportsDir.map { it.asFileTree.matching { include("*.ic") } }
 
     onlyIf {
-        val reportFiles = koverReportFiles.get().files
-        if (reportFiles.isEmpty()) {
-            logger.lifecycle("Skipping koverCustomHtmlReport: no Kover .ic reports found in ${koverReportsDir.get().asFile.absolutePath}")
+        if (koverReportFiles.get().files.isEmpty()) {
+            logger.lifecycle("Skipping $taskName: no Kover .ic reports found in ${koverReportsDir.get().asFile.absolutePath}")
             false
         } else {
             true
@@ -654,21 +663,17 @@ tasks.register<JavaExec>("koverCustomHtmlReport") {
     inputs.files(koverReportFiles)
     classesDirs.forEach { inputs.dir(it) }
     sourceDirs.forEach { inputs.dir(it) }
-    inputs.property("reportTitle", reportTitle)
 
     argumentProviders.add(CommandLineArgumentProvider {
-        val reportFiles = koverReportFiles.get().files.sortedBy { it.name }
-
         val classSubDirs = classesDirs.flatMap { dir ->
             dir.get().asFile.listFiles()
                 ?.filter { it.isDirectory }
-                ?.sortedBy { it.name }
+                ?.filterNot { it.name in setOf("functionalTest", "test") }
                 .orEmpty()
         }
-
         buildList {
             add("report")
-            reportFiles.forEach { add(it.absolutePath) }
+            koverReportFiles.get().files.forEach { add(it.absolutePath) }
             classSubDirs.forEach { dir ->
                 add("--classfiles")
                 add(dir.absolutePath)
@@ -677,16 +682,36 @@ tasks.register<JavaExec>("koverCustomHtmlReport") {
                 add("--src")
                 add(src.absolutePath)
             }
-            add("--html")
-            add(htmlReportDir.get().asFile.absolutePath)
-            add("--title")
-            add(reportTitle)
+            add("--${config.reportType}")
+            add(config.reportDir.get().asFile.absolutePath)
+            addAll(config.extraArgs)
         }
     })
 
-    outputs.dir(htmlReportDir)
+    outputs.dir(config.reportDir.get().asFile.parentFile)
 
     doLast {
-        logger.lifecycle("Kover HTML report generated at: ${htmlReportDir.get().asFile.absolutePath}/index.html")
+        logger.lifecycle(config.reportMessage)
     }
 }
+
+tasks.registerKoverReportTask(
+    taskName = "koverCustomHtmlReport",
+    description = "Generate HTML coverage report from Kover TestKit data using kover-cli",
+    config = KoverReportConfig(
+        reportType = "html",
+        reportDir = layout.buildDirectory.file("reports/kover/html"),
+        extraArgs = listOf("--title", "Kotlin Gradle Plugin Integration Tests Coverage"),
+        reportMessage = "Kover HTML report generated at: ${layout.buildDirectory.dir("reports/kover/html").get().asFile.absolutePath}/index.html",
+    ),
+)
+
+tasks.registerKoverReportTask(
+    taskName = "koverCustomXmlReport",
+    description = "Generate XML coverage report from Kover TestKit data using kover-cli",
+    config = KoverReportConfig(
+        reportType = "xml",
+        reportDir = layout.buildDirectory.file("reports/kover/report.xml"),
+        reportMessage = "Kover XML report generated at: ${layout.buildDirectory.file("reports/kover/report.xml").get().asFile.absolutePath}",
+    ),
+)
