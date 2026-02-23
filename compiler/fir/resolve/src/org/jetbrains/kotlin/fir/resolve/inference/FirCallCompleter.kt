@@ -99,7 +99,7 @@ class FirCallCompleter(
             resolutionMode,
         )
 
-        if (skipEvenPartialCompletion) return call
+        if (skipEvenPartialCompletion || candidate.callInfo.isCollectionLiteralCall) return call
 
         val completionMode = candidate.computeCompletionMode(
             session.inferenceComponents, resolutionMode, initialType
