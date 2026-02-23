@@ -13,8 +13,10 @@ class Dog extends Animal {
 function box(): string {
     const c1 = new Covariant<string>("123");
     const c2 = new Contravariant<string>();
+    c2.consume("123");
     const c3 = new Invariant<number>(123);
     const c4: UnsafeCovariant<Animal> = new UnsafeCovariant<Dog>(new Dog());
+    c4.consume(new Animal());
 
     return "OK";
 }
