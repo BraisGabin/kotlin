@@ -974,6 +974,7 @@ class FirCallCompletionResultsWriterTransformer(
     ): ConeKotlinType {
         if (this !is ConeFlexibleType) return this
         if (argument !is FirTypeProjectionWithVariance) return this
+        if (session.languageVersionSettings.supportsFeature(LanguageFeature.DontMakeExplicitNullableJavaTypeArgumentsFlexible)) return this
 
         return withAttributes(
             attributes.add(
