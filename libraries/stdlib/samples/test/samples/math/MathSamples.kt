@@ -500,7 +500,7 @@ class MathSamples {
         fun discreteValues() {
             // Unlike true real numbers, Double can only represent a fixed set of discrete values.
             // According to IEEE-754, Double uses a single bit for a sign, 11 bits for the exponent, and 52 for the fraction.
-            // The bigger the integer part of the flooring point value, the less space remains for "fitting" fractional part.
+            // The bigger the integer part of the floating point value, the less space remains for "fitting" fractional part.
             // As a result, starting from 2⁵² and until 2⁵³-1 Double values are incremented by 1.0
             // (meaning that there are no in-between values), values from 2⁵³ until 2⁵⁴-1 are incremented by 2.0,
             // but values in between 2⁵¹ and 2⁵²-1 are incremented by 0.5.
@@ -1095,7 +1095,7 @@ class MathSamples {
         fun discreteValues() {
             // Unlike true real numbers, Float can only represent a fixed set of discrete values.
             // According to IEEE-754, Double uses a single bit for a sign, 8 bits for the exponent, and 23 for the fraction.
-            // The bigger the integer part of the flooring point value, the less space remains for "fitting" fractional part.
+            // The bigger the integer part of the floating point value, the less space remains for "fitting" fractional part.
             // As a result, starting from 2²³ and until 2²⁴-1 Float values are incremented by 1.0
             // (meaning that there are no in-between values), values from 2²³ until 2²⁵-1 are incremented by 2.0,
             // but values in between 2²² and 2²³-1 are incremented by 0.5.
