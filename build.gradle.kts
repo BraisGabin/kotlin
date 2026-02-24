@@ -299,6 +299,11 @@ extra["compilerModules"] =
             commonCompilerModules +
             firAllCompilerModules
 
+logger.quiet("ENV VARIABLES:")
+System.getenv().keys.forEach {
+    logger.quiet(it)
+}
+logger.quiet("###########")
 /**
  * An array of projects used in the IntelliJ Kotlin Plugin.
  *
