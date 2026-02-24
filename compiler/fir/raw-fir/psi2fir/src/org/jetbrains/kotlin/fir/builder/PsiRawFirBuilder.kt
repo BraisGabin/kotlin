@@ -43,6 +43,7 @@ import org.jetbrains.kotlin.fir.types.impl.ConeClassLikeTypeImpl
 import org.jetbrains.kotlin.fir.types.impl.FirImplicitTypeRefImplWithoutSource
 import org.jetbrains.kotlin.fir.types.impl.FirQualifierPartImpl
 import org.jetbrains.kotlin.fir.types.impl.FirTypeArgumentListImpl
+import org.jetbrains.kotlin.fir.types.impl.ResolvedImplicitTypeRef
 import org.jetbrains.kotlin.lexer.KtTokens.*
 import org.jetbrains.kotlin.name.*
 import org.jetbrains.kotlin.psi.*
@@ -1552,7 +1553,7 @@ open class PsiRawFirBuilder(
                 symbol = evalSymbol
                 dispatchReceiverType = currentDispatchReceiverType()
                 status = FirDeclarationStatusImpl(Visibilities.Public, Modality.FINAL)
-                returnTypeRef = implicitUnitType
+                returnTypeRef = ResolvedImplicitTypeRef(implicitUnitType)
                 isLocal = false
 
                 context.firFunctionTargets += evalTarget
