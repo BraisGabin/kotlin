@@ -249,9 +249,12 @@ fun IrLibraryFile.deserializeFileEntryName(fileEntryProto: ProtoFileEntry): Stri
     else -> error("Malformed KLIB: File entry has no name")
 }
 
-fun IrLibraryFile.fileEntry(protoFile: ProtoFile): FileEntry =
+fun IrLibraryFile.fileEntry(
+    protoFile: ProtoFile,
+    parseFileEntry: (Int) -> FileEntry = { fileEntry(it) ?: error("Invalid KLib: cannot read file entry by its index") }
+): FileEntry =
     if (protoFile.hasFileEntryId())
-        fileEntry(protoFile.fileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
+        parseFileEntry(protoFile.fileEntryId)
     else {
         require(protoFile.hasFileEntry()) { "Invalid KLib: either fileEntry or fileEntryId must be present" }
         protoFile.fileEntry
