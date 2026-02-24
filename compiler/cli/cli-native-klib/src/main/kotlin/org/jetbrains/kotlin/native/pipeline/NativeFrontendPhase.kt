@@ -173,7 +173,9 @@ object NativeFrontendPhase : PipelinePhase<ConfigurationPipelineArtifact, Native
             isCommonSource = { groupedSources.isCommonSourceForLt(it) },
             fileBelongsToModule = { file, it -> groupedSources.fileBelongsToModuleForLt(file, it) },
             buildResolveAndCheckFir = { session, files, diagnosticsReporter ->
-                buildResolveAndCheckFirViaLightTree(session, files, diagnosticsReporter, null)
+                buildResolveAndCheckFirViaLightTree(session, files, diagnosticsReporter) { files, lines ->
+                    configuration.perfManager?.addSourcesStats(files, lines)
+                }
             },
         )
     }
