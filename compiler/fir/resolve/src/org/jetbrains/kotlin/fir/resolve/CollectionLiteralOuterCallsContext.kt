@@ -11,11 +11,12 @@ import org.jetbrains.kotlin.fir.resolve.calls.candidate.CheckerSink
 class CollectionLiteralOuterCallsContext(
     /**
      * [Candidate] whose constraint system must be expanded by the CL's system.
-     * CL might be arbitrarily deep relatively to it.
+     * During overload resolution, it is always the immediate containing candidate.
+     * During completion, it may be an arbitrary outer call.
      */
     val containingCandidate: Candidate,
     /**
-     * [CheckerSink] of outermost candidate: for nested CL in `foo([[]])` it will be a checker sink of candidate for `foo`.
+     * [CheckerSink] of outer candidate.
      * Only non-`null` when CL is expanded as part of the overload resolution of some outer call.
      */
     val checkerSink: CheckerSink? = null,
