@@ -120,6 +120,7 @@ val businessLogicTestSuits = setOf(
     "testCriToolchain",
     "testCompilerPlugins",
     "testBuildMetrics",
+    "testKotlinLogger",
 )
 
 fun JvmTestSuite.addSnapshotBuildToolsImpl() {

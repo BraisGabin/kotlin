@@ -14,16 +14,34 @@ import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 internal class KotlinLoggerMessageCollectorAdapter(
     internal val kotlinLogger: KotlinLogger,
     compilerMessageRenderer: CompilerMessageRenderer,
+    private val warningsAsErrors: Boolean,
 ) : MessageCollector {
 
     private val messageRenderer = compilerMessageRenderer.asMessageRenderer()
 
     override fun clear() {}
 
-    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
-        val renderedMessage = messageRenderer.render(severity, message, location)
+    private fun CompilerMessageSeverity.getEffectiveSeverity(warningsAsErrors: Boolean) = when (this) {
+        CompilerMessageSeverity.WARNING if warningsAsErrors -> CompilerMessageSeverity.ERROR
+        CompilerMessageSeverity.STRONG_WARNING if warningsAsErrors -> CompilerMessageSeverity.ERROR
+        // Explicitly listing all remaining severities instead of using `else` so that the compiler
+        // forces a revisit here when new severity is added to CompilerMessageSeverity.
+        CompilerMessageSeverity.OUTPUT,
+        CompilerMessageSeverity.LOGGING,
+        CompilerMessageSeverity.INFO,
+        CompilerMessageSeverity.EXCEPTION,
+        CompilerMessageSeverity.ERROR,
+        CompilerMessageSeverity.WARNING,
+        CompilerMessageSeverity.STRONG_WARNING,
+        CompilerMessageSeverity.FIXED_WARNING,
+            -> this
+    }
 
-        when (severity) {
+    override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageSourceLocation?) {
+        val effectiveSeverity = severity.getEffectiveSeverity(warningsAsErrors)
+        val renderedMessage = messageRenderer.render(effectiveSeverity, message, location)
+
+        when (effectiveSeverity) {
             CompilerMessageSeverity.EXCEPTION -> kotlinLogger.error(
                 renderedMessage,
                 RuntimeException(message)
