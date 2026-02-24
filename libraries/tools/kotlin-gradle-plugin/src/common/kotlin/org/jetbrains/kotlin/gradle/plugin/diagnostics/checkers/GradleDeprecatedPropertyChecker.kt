@@ -128,7 +128,8 @@ internal object GradleDeprecatedPropertyChecker : KotlinGradleProjectChecker {
             propertiesBuildService.shouldReportProperty(project, it)
         }.forEach {
             collector.reportOncePerGradleBuild(
-                project,
+                projectPath,
+                renderingOptions,
                 KotlinToolingDiagnostics.DeprecatedWarningGradleProperties(
                     it.propertyName,
                     it.details,
@@ -141,7 +142,8 @@ internal object GradleDeprecatedPropertyChecker : KotlinGradleProjectChecker {
             propertiesBuildService.shouldReportProperty(project, it)
         }.forEach {
             collector.reportOncePerGradleBuild(
-                project,
+                projectPath,
+                renderingOptions,
                 KotlinToolingDiagnostics.DeprecatedErrorGradleProperties(
                     it.propertyName,
                     it.details,
