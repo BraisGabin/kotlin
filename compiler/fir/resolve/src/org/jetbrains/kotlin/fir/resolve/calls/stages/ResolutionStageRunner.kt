@@ -6,10 +6,12 @@
 package org.jetbrains.kotlin.fir.resolve.calls.stages
 
 import org.jetbrains.kotlin.fir.resolve.calls.ResolutionContext
+import org.jetbrains.kotlin.fir.resolve.calls.candidate.CallKind
 import org.jetbrains.kotlin.fir.resolve.calls.candidate.Candidate
 import org.jetbrains.kotlin.fir.resolve.calls.candidate.CheckerSinkImpl
 import org.jetbrains.kotlin.fir.resolve.inference.inferenceLogger
 import org.jetbrains.kotlin.resolve.calls.tower.CandidateApplicability
+import org.jetbrains.kotlin.types.AbstractTypeChecker
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -17,17 +19,30 @@ import kotlin.coroutines.intrinsics.createCoroutineUnintercepted
 import kotlin.coroutines.resume
 
 class ResolutionStageRunner {
-    fun processCandidate(candidate: Candidate, context: ResolutionContext, stopOnFirstError: Boolean = true): CandidateApplicability {
+    fun processCandidate(
+        candidate: Candidate,
+        context: ResolutionContext,
+        stopOnFirstError: Boolean = true,
+        extendedCallKind: CallKind? = null
+    ): CandidateApplicability {
         val sink = CheckerSinkImpl(candidate, stopOnFirstError = stopOnFirstError)
         val inferenceLogger = candidate.callInfo.session.inferenceLogger
         inferenceLogger?.logCandidate(candidate)
         var finished = false
+
+        val regularResolutionSequence = candidate.callInfo.callKind.resolutionSequence
+        val extendedResolutionSequence = extendedCallKind?.resolutionSequence
+        if (AbstractTypeChecker.RUN_SLOW_ASSERTIONS && extendedResolutionSequence != null) {
+            for (index in regularResolutionSequence.indices) {
+                check(extendedResolutionSequence[index] === regularResolutionSequence[index])
+            }
+        }
         sink.continuation = suspend {
             // Multiple runs on the same candidate are possible,
             // that's why we have to skip already processed stages on the next run.
             // Neither regular `for` loop nor iterating by index don't work here,
             // because we have to start from the next unprocessed stage and mutate `Candidate.passedStages` on every iteration.
-            val resolutionSequence = candidate.callInfo.callKind.resolutionSequence
+            val resolutionSequence = extendedResolutionSequence ?: regularResolutionSequence
             while (candidate.passedStages < resolutionSequence.size) {
                 context(context, sink) {
                     val nextStage = resolutionSequence[candidate.passedStages++]

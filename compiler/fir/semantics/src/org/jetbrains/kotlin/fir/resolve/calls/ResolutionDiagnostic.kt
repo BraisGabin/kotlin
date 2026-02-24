@@ -91,7 +91,8 @@ class WrongNumberOfTypeArguments(
 
 object UnsuccessfulCallableReferenceArgument : ResolutionDiagnostic(INAPPLICABLE)
 
-object UnsuccessfulCollectionLiteralArgument : ResolutionDiagnostic(INAPPLICABLE)
+class UnsuccessfulCollectionLiteralArgument(delegatedDiagnostic: ResolutionDiagnostic) :
+    ResolutionDiagnostic(delegatedDiagnostic.applicability)
 
 object ErrorTypeInArguments : ResolutionDiagnostic(INAPPLICABLE)
 

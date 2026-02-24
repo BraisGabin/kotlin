@@ -417,4 +417,4 @@ class Candidate(
 }
 
 val Candidate.fullyAnalyzed: Boolean
-    get() = passedStages == callInfo.callKind.resolutionSequence.size
+    get() = passedStages >= callInfo.callKind.resolutionSequence.size
