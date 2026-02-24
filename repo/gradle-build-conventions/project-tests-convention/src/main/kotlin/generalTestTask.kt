@@ -64,14 +64,21 @@ private fun Test.cleanupInvalidExcludePatternsForTCParallelTests(excludesFilePat
     val parallelTestsExcludes = File(excludesFilePath).readLines().filter { !it.startsWith("#") }.toSet()
     val excludePatterns = filter.excludePatterns
 
+    var logged = false
     parallelTestsExcludes.forEach {
         if (!candidateTestClassNames.contains(it)) {
-            logger.warn("WARNING: parallelTests excludesFile contains class name missing in test classes: $it")
-            logger.warn("Removing '$it.*' from `excludePatterns`")
+            logger.warn(
+                "WARNING: parallelTests excludesFile contains class name missing in test classes: $it," +
+                        " removing '$it.*' from `excludePatterns` ..."
+            )
             excludePatterns.remove("$it.*")
+            logged = true
         }
     }
 
+    if (logged) {
+        println("##teamcity[buildStatus text='⚠\uFE0F 'Parallel Tests' problem logged {build.status.text}']")
+    }
     filter.setExcludePatterns(*excludePatterns.toTypedArray())
 }
 
