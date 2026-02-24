@@ -66,6 +66,41 @@ sealed class CallKind(vararg val resolutionSequence: ResolutionStage) {
         CheckLambdaAgainstTypeVariableContradiction,
     )
 
+    /**
+     * For collection literal, we only need stages that either:
+     * 1. are part of candidate constraint system construction, or
+     * 2. in green code, ensure that we choose the correct one among operator `of`s ([MapArguments], [CheckCallModifiers], ...)
+     *
+     * Stages like [EagerResolveOfCallableReferences] do not help to choose the candidate for **collection literal** call,
+     * but they need to be run **after** the candidate is chosen to help with overload resolution of outer
+     * call. This is done in scope of [EagerResolveOfCollectionLiteral] for outer call. See all such stages in
+     * [CollectionLiteralWithPostProcessing].
+     */
+    object CollectionLiteral : CallKind(
+        CheckHiddenDeclaration,
+        CheckVisibility,
+        MapArguments,
+        MapTypeArguments,
+        CreateFreshTypeVariableSubstitutorStage,
+        CollectTypeVariableUsagesInfo,
+        CheckArguments,
+        CheckDispatchReceiver,
+        CheckExtensionReceiver,
+        CheckContextArguments,
+        CheckShadowedImplicits,
+        CheckCallModifiers,
+        CheckLowPriorityInOverloadResolution,
+    )
+
+    object CollectionLiteralWithPostProcessing : CallKind(
+        // candidate will already have passedStages == CollectionLiteral.resolutionSequence.size once we start postprocessing
+        *CollectionLiteral.resolutionSequence,
+        EagerResolveOfCollectionLiteral,
+        EagerResolveOfCallableReferences,
+        CheckLambdaAgainstTypeVariableContradiction,
+        CheckIncompatibleTypeVariableUpperBounds,
+    )
+
     object DelegatingConstructorCall : CallKind(
         CheckHiddenDeclaration,
         CheckVisibility,

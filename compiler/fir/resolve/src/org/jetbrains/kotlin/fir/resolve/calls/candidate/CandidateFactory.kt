@@ -255,11 +255,14 @@ class CandidateFactory private constructor(
             is CallKind.VariableAccess -> createErrorPropertySymbol(diagnostic, callInfo.callSite.source)
             is CallKind.Function,
             is CallKind.DelegatingConstructorCall,
-            is CallKind.CallableReference
-            -> createErrorFunctionSymbol(diagnostic)
-            is CallKind.SyntheticSelect -> throw IllegalStateException()
-            is CallKind.SyntheticIdForCallableReferencesResolution -> throw IllegalStateException()
-            is CallKind.CustomForIde -> throw IllegalStateException()
+            is CallKind.CallableReference,
+            is CallKind.CollectionLiteral,
+                -> createErrorFunctionSymbol(diagnostic)
+            is CallKind.SyntheticSelect,
+            is CallKind.CollectionLiteralWithPostProcessing,
+            is CallKind.SyntheticIdForCallableReferencesResolution,
+            is CallKind.CustomForIde
+                -> throw IllegalStateException()
         }
         return Candidate(
             symbol,
