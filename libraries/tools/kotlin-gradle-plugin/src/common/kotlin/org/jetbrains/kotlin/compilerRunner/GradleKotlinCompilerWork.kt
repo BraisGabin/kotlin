@@ -370,25 +370,43 @@ internal class GradleKotlinCompilerWork @Inject constructor(
             Array<String>::class.java
         )
 
-        val res = exec.invoke(compiler.declaredConstructors.single().newInstance(), out, emptyServices, config.compilerArgs)
-        val exitCode = ExitCode.valueOf(res.toString())
-        processCompilerOutput(
-            messageCollector,
-            OutputItemsCollectorImpl(),
-            stream,
-            exitCode
-        )
         try {
-            metrics.measure(CLEAR_JAR_CACHE) {
-                val coreEnvironment = Class.forName("org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment", true, classLoader)
-                val dispose = coreEnvironment.getMethod("disposeApplicationEnvironment")
-                dispose.invoke(null)
+            val res = exec.invoke(compiler.declaredConstructors.single().newInstance(), out, emptyServices, config.compilerArgs)
+            val exitCode = ExitCode.valueOf(res.toString())
+            processCompilerOutput(
+                messageCollector,
+                OutputItemsCollectorImpl(),
+                stream,
+                exitCode
+            )
+            try {
+                metrics.measure(CLEAR_JAR_CACHE) {
+                    val coreEnvironment = Class.forName("org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment", true, classLoader)
+                    val dispose = coreEnvironment.getMethod("disposeApplicationEnvironment")
+                    dispose.invoke(null)
+                }
+            } catch (e: Throwable) {
+                log.warn("Unable to clear jar cache after in-process compilation", e)
             }
-        } catch (e: Throwable) {
-            log.warn("Unable to clear jar cache after in-process compilation", e)
+
+            log.logFinish(KotlinCompilerExecutionStrategy.IN_PROCESS)
+            return exitCode
+        } finally {
+            classLoader.invokeKotlinxCoroutinesDispatcherShutdown()
         }
-        log.logFinish(KotlinCompilerExecutionStrategy.IN_PROCESS)
-        return exitCode
+    }
+
+    private fun ClassLoader.invokeKotlinxCoroutinesDispatcherShutdown() {
+        val dispatcherClass = try {
+            Class.forName("kotlinx.coroutines.Dispatchers", true, this)
+        } catch (_: ClassNotFoundException) {
+            return
+        }
+
+        val instanceField = dispatcherClass.getField("INSTANCE")
+        val instance = instanceField.get(null)
+        val shutdownMethod = dispatcherClass.getMethod("shutdown")
+        shutdownMethod.invoke(instance)
     }
 
     private fun requestedCompilationResults(): EnumSet<CompilationResultCategory> {

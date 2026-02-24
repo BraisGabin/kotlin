@@ -1,6 +1,7 @@
 package org.jetbrains.kotlin.gradle
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.kotlin.dsl.kotlin
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
 import org.jetbrains.kotlin.gradle.internals.asFinishLogMessage
@@ -11,8 +12,13 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompilerExecutionStrategy
 import org.jetbrains.kotlin.gradle.tasks.withType
 import org.jetbrains.kotlin.gradle.testbase.*
 import org.jetbrains.kotlin.gradle.util.checkedReplace
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.DisplayName
 import kotlin.io.path.appendText
+import kotlin.io.path.createFile
+import kotlin.io.path.createParentDirectories
+import kotlin.io.path.writeText
+import kotlin.test.fail
 
 @DisplayName("Kotlin JS compile execution strategy")
 class ExecutionStrategyJsIT : ExecutionStrategyIT() {
@@ -343,4 +349,76 @@ abstract class ExecutionStrategyIT : KGPDaemonsBaseTest() {
 
     protected abstract fun BuildResult.checkOutput(project: TestProject)
     protected abstract fun BuildResult.checkOutputAfterChange(project: TestProject)
+}
+
+class NoActiveThreadsAfterCompilerInvocationIT : KGPDaemonsBaseTest() {
+    @DisplayName("KT-84152: [BTA] In-process compilation should not leave active threads")
+    @Disabled("Isn't fixed for BTA yet")
+    @GradleTest
+    fun testBta(gradleVersion: GradleVersion) = test(gradleVersion, buildOptions = defaultBuildOptions.copy(runViaBuildToolsApi = true))
+
+    @DisplayName("KT-84152: In-process compilation should not leave active threads")
+    @GradleTest
+    fun testNonBta(gradleVersion: GradleVersion) = test(gradleVersion, buildOptions = defaultBuildOptions.copy(runViaBuildToolsApi = false))
+
+    private fun test(
+        gradleVersion: GradleVersion,
+        buildOptions: BuildOptions
+    ) {
+        project(
+            "empty",
+            gradleVersion,
+            buildOptions = buildOptions.copy(compilerExecutionStrategy = KotlinCompilerExecutionStrategy.IN_PROCESS)
+        ) {
+            plugins {
+                kotlin("jvm")
+            }
+
+            kotlinSourcesDir().resolve("Foo.kt")
+                .createParentDirectories()
+                .createFile()
+                .writeText("class Foo")
+
+            val diff = providerBuildScriptReturn {
+                fun makeThreadsSnapshot(): Set<String> = Thread
+                    .getAllStackTraces()
+                    .keys.groupBy { it.javaClass.name + ":" + it.name }
+                    .map { (name, threads) -> "$name (total ${threads.size})" }.toSet()
+
+                val threadsBefore = mutableSetOf<String>()
+                val threadsAfter = mutableSetOf<String>()
+
+                val dumpBefore = project.tasks.register("dumpThreadsBefore") {
+                    it.doFirst {
+                        threadsBefore.addAll(makeThreadsSnapshot())
+                    }
+                }
+
+                val dumpAfter = project.tasks.register("dumpThreadsAfter") {
+                    it.doFirst {
+                        threadsAfter.addAll(makeThreadsSnapshot())
+                    }
+                }
+
+                val compileKotlin = project.tasks.named("compileKotlin")
+
+                compileKotlin.configure { it.dependsOn(dumpBefore) }
+                dumpAfter.configure{ it.dependsOn(compileKotlin) }
+
+                project.provider { threadsAfter - threadsBefore }
+            }.buildAndReturn("dumpThreadsAfter")
+
+            val expectedGradleWorkerThreads = listOf(
+                """java\.lang\.Thread:pool-\d+-thread-\d+ \(total \d+\)""".toRegex(),
+                """java\.lang\.Thread:WorkerExecutor Queue \(total 1\)""".toRegex(),
+                """java\.lang\.Thread:Unconstrained build operations Thread \d+ \(total \d+\)""".toRegex(),
+            )
+
+            val diffFiltered = diff.filter { regex -> expectedGradleWorkerThreads.all { !regex.matches(it) } }
+
+            if (diffFiltered.isNotEmpty()) {
+                fail("Threads were left active after compilation: $diff")
+            }
+        }
+    }
 }
