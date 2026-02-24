@@ -48,17 +48,11 @@ class ExportModelGenerator(val context: JsIrBackendContext, val isEsModules: Boo
         LanguageFeature.JsExportInterfacesInImplementableWay
     )
 
-    // Some declarations are exported in a special form that even with [LanguageFeature.JsExportInterfacesInImplementableWay]
-    // can't be implementable. As for example, any exported Kotlin collections right now can't be implemented on the JS / TS side
-    private val packagesThatAreNotImplementable: Set<FqName> = hashSetOf(StandardNames.COLLECTIONS_PACKAGE_FQ_NAME)
+    private fun IrClass.shouldContainImplementableSymbolProperty(hasNotExportedAbstractMember: Boolean): Boolean =
+        !hasNotExportedAbstractMember && allowImplementingInterfaces && isInterface && !isExternal && !isJsImplicitExport() && !isJsNoRuntime()
 
-    private fun IrClass.shouldContainImplementableSymbolProperty(): Boolean =
-        allowImplementingInterfaces && isInterface && !isExternal && !isJsImplicitExport() && !isJsNoRuntime() &&
-                fileOrNull?.packageFqName !in packagesThatAreNotImplementable
-
-    private fun IrClass.shouldContainNotImplementableProperty(): Boolean =
-        isJsImplicitExport() ||
-                fileOrNull?.packageFqName in packagesThatAreNotImplementable ||
+    private fun IrClass.shouldContainNotImplementableProperty(hasNotExportedAbstractMember: Boolean): Boolean =
+        hasNotExportedAbstractMember || isJsImplicitExport() ||
                 (!allowImplementingInterfaces && isInterface && !isExternal && !isJsNoRuntime())
 
     fun generateExport(file: IrPackageFragment): List<ExportedDeclaration> {
@@ -482,13 +476,15 @@ class ExportModelGenerator(val context: JsIrBackendContext, val isEsModules: Boo
             }
         }
 
-        if (klass.shouldContainImplementableSymbolProperty()) {
+        val klassHasNotExportedAbstractMember = klass.hasNotExportedAbstractMembers()
+
+        if (klass.shouldContainImplementableSymbolProperty(klassHasNotExportedAbstractMember)) {
             members.addOwnJsSymbolDeclaration()
             members.addImplementableSymbolProperty(klass)
         }
 
         if (!klass.isExternal) {
-            members.addSuperTypesSpecialProperties(klass, superTypes, typeParameterScope)
+            members.addSuperTypesSpecialProperties(klass, superTypes, typeParameterScope, klassHasNotExportedAbstractMember)
         }
 
         if (defaultImplementations.isNotEmpty()) {
@@ -611,9 +607,10 @@ class ExportModelGenerator(val context: JsIrBackendContext, val isEsModules: Boo
         klass: IrClass,
         superTypes: Iterable<IrType>,
         typeParameterScope: TypeParameterScope,
+        klassHasNotExportedAbstractMember: Boolean
     ) {
         val allSuperTypesWithBrandProperty = klass.collectAllImplementableAndNotImplementableInterfaces(superTypes)
-        val typeItselfShouldNotBeImplemented = klass.shouldContainNotImplementableProperty()
+        val typeItselfShouldNotBeImplemented = klass.shouldContainNotImplementableProperty(klassHasNotExportedAbstractMember)
 
         val (implementableSuperTypes, notImplementableSuperTypes) = allSuperTypesWithBrandProperty.partition { it is InterfaceSuperType.ImplementableInterface }
 

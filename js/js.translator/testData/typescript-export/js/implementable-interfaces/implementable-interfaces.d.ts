@@ -166,8 +166,26 @@ declare namespace JS_TESTS {
         namespace MidNormal {
             const Symbol: unique symbol;
         }
+        interface WithSuspendOnly {
+            mid(): Promise<string>;
+            readonly [foo.WithSuspendOnly.Symbol]: true;
+        }
+        namespace WithSuspendOnly {
+            const Symbol: unique symbol;
+        }
+        interface WithSuspendOnlyButIgnored {
+            readonly __doNotUseOrImplementIt: {
+                readonly "foo.WithSuspendOnlyButIgnored": unique symbol;
+            };
+        }
         interface NoRuntimeLeaf extends foo.MidNormal {
             leaf(): string;
+        }
+        interface ShouldBeNotImplementable {
+            leaf(): string;
+            readonly __doNotUseOrImplementIt: {
+                readonly "foo.ShouldBeNotImplementable": unique symbol;
+            };
         }
     }
 }
