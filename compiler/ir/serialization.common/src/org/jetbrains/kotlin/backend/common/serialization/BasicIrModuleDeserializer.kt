@@ -8,20 +8,16 @@ package org.jetbrains.kotlin.backend.common.serialization
 import org.jetbrains.kotlin.backend.common.serialization.IrDeserializationSettings.DeserializeFunctionBodies
 import org.jetbrains.kotlin.backend.common.serialization.encodings.BinarySymbolData
 import org.jetbrains.kotlin.descriptors.ModuleDescriptor
-import org.jetbrains.kotlin.descriptors.impl.EmptyPackageFragmentDescriptor
 import org.jetbrains.kotlin.ir.declarations.IrFile
 import org.jetbrains.kotlin.ir.declarations.IrModuleFragment
-import org.jetbrains.kotlin.ir.declarations.impl.IrFileImpl
 import org.jetbrains.kotlin.ir.declarations.impl.IrModuleFragmentImpl
 import org.jetbrains.kotlin.ir.symbols.IrPropertySymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSymbol
-import org.jetbrains.kotlin.ir.symbols.impl.IrFileSymbolImpl
 import org.jetbrains.kotlin.ir.util.IdSignature
 import org.jetbrains.kotlin.library.KotlinAbiVersion
 import org.jetbrains.kotlin.library.components.KlibIrComponent
 import org.jetbrains.kotlin.library.components.irOrFail
-import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.protobuf.CodedInputStream
 import org.jetbrains.kotlin.protobuf.ExtensionRegistryLite
 
@@ -67,7 +63,7 @@ abstract class BasicIrModuleDeserializer(
                 val fileStream = ir.irFile(i).codedInputStream
                 val fileProto = ProtoFile.parseFrom(fileStream, ExtensionRegistryLite.getEmptyRegistry())
                 val fileReader = IrLibraryFileFromBytes(IrKlibBytesSource(ir, i))
-                val file = fileReader.createFile(moduleFragment, fileProto)
+                val file = fileReader.createFile(moduleFragment, fileProto, linker.fileEntryDeserializer)
 
                 this += deserializeIrFile(fileProto, file, fileReader, i, delegate, allowErrorNodes)
 
@@ -103,14 +99,6 @@ abstract class BasicIrModuleDeserializer(
     }
 
     override val moduleFragment: IrModuleFragment = IrModuleFragmentImpl(moduleDescriptor)
-
-    private fun IrLibraryFile.createFile(module: IrModuleFragment, fileProto: ProtoFile): IrFile {
-        val fileEntry = linker.fileEntryDeserializer.fileEntry(this, fileProto)
-        val fqName = FqName(deserializeFqName(fileProto.fqNameList))
-        val packageFragmentDescriptor = EmptyPackageFragmentDescriptor(module.descriptor, fqName)
-        val symbol = IrFileSymbolImpl(packageFragmentDescriptor)
-        return IrFileImpl(fileEntry, symbol, fqName, module)
-    }
 
     private fun deserializeIrFile(
         fileProto: ProtoFile, file: IrFile, fileReader: IrLibraryFileFromBytes,

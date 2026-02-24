@@ -5,7 +5,6 @@
 
 package org.jetbrains.kotlin.backend.common.serialization
 
-import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry
 import org.jetbrains.kotlin.ir.IrFileEntry
 import org.jetbrains.kotlin.ir.util.NaiveSourceBasedFileEntryImpl
 import org.jetbrains.kotlin.backend.common.serialization.proto.FileEntry as ProtoFileEntry
@@ -15,47 +14,42 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrInlinedFunction
 class FileEntryDeserializer(private val irInterner: IrInterningService) {
     data class ProtoCacheKey(val libraryFile: IrLibraryFile, val protoIndex: Int)
 
-    private val protoCache = mutableMapOf<ProtoCacheKey, FileEntry>()
-    private val fileEntryCache = mutableMapOf<FileEntry, IrFileEntry>()
+    private val cache = mutableMapOf<ProtoCacheKey, IrFileEntry>()
 
     fun fileEntry(libraryFile: IrLibraryFile, protoIndex: Int): IrFileEntry {
-        val protoFileEntry = protoCache.getOrPut(ProtoCacheKey(libraryFile, protoIndex)) {
-            libraryFile.fileEntry(protoIndex)!!
-        }
-        return fileEntryCache.getOrPut(protoFileEntry) {
+        return cache.getOrPut(ProtoCacheKey(libraryFile, protoIndex)) {
+            val protoFileEntry = libraryFile.fileEntry(protoIndex)!!
             irInterner.fileEntry(libraryFile.deserializeFileEntry(protoFileEntry))
         }
     }
 
     fun fileEntry(libraryFile: IrLibraryFile, proto: ProtoInlinedFunctionBlock): IrFileEntry {
-        val protoFileEntry = libraryFile.fileEntry(proto)
-        return fileEntryCache.getOrPut(protoFileEntry) {
-            irInterner.fileEntry(libraryFile.deserializeFileEntry(protoFileEntry))
-        }
-    }
-
-    fun fileEntry(libraryFile: IrLibraryFile, proto: ProtoFile): IrFileEntry {
-        val protoFileEntry = libraryFile.fileEntry(proto) {
-            protoCache.getOrPut(ProtoCacheKey(libraryFile, it)) {
-                libraryFile.fileEntry(it) ?: error("Invalid KLib: cannot read file entry by its index")
-            }
-        }
-        return fileEntryCache.getOrPut(protoFileEntry) {
-            irInterner.fileEntry(libraryFile.deserializeFileEntry(protoFileEntry))
-        }
-    }
-
-    private fun IrLibraryFile.fileEntry(proto: ProtoInlinedFunctionBlock): FileEntry =
-        if (proto.hasInlinedFunctionFileEntryId()) {
-            protoCache.getOrPut(ProtoCacheKey(this, proto.inlinedFunctionFileEntryId)) {
-                fileEntry(proto.inlinedFunctionFileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
+        return if (proto.hasInlinedFunctionFileEntryId()) {
+            cache.getOrPut(ProtoCacheKey(libraryFile, proto.inlinedFunctionFileEntryId)) {
+                val protoFileEntry = libraryFile.fileEntry(proto.inlinedFunctionFileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
+                irInterner.fileEntry(libraryFile.deserializeFileEntry(protoFileEntry))
             }
         } else {
             require(proto.hasInlinedFunctionFileEntry()) {
                 "Invalid KLib: either fileEntry or fileEntryId must be present in serialized IrInlinedFunctionBlock"
             }
-            proto.inlinedFunctionFileEntry
+            irInterner.fileEntry(libraryFile.deserializeFileEntry(proto.inlinedFunctionFileEntry))
         }
+    }
+
+    fun fileEntry(libraryFile: IrLibraryFile, proto: ProtoFile): IrFileEntry {
+        return if (proto.hasFileEntryId())
+            cache.getOrPut(ProtoCacheKey(libraryFile, proto.fileEntryId)) {
+                val protoFileEntry = libraryFile.fileEntry(proto.fileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
+                irInterner.fileEntry(libraryFile.deserializeFileEntry(protoFileEntry))
+            }
+        else {
+            require(proto.hasFileEntry()) {
+                "Invalid KLib: either fileEntry or fileEntryId must be present"
+            }
+            irInterner.fileEntry(libraryFile.deserializeFileEntry(proto.fileEntry))
+        }
+    }
 
     private fun IrLibraryFile.deserializeFileEntry(fileEntryProto: ProtoFileEntry): IrFileEntry {
         val lineStartOffsets: IntArray
