@@ -272,30 +272,6 @@ class NaiveSourceBasedFileEntryImpl(
         if (offset == SYNTHETIC_OFFSET) return LineAndColumn(0, 0)
         return super.getLineAndColumnNumbers(offset)
     }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        if (!super.equals(other)) return false
-
-        other as NaiveSourceBasedFileEntryImpl
-
-        if (maxOffset != other.maxOffset) return false
-        if (firstRelevantLineIndex != other.firstRelevantLineIndex) return false
-        if (name != other.name) return false
-        if (!lineStartOffsets.contentEquals(other.lineStartOffsets)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + maxOffset
-        result = 31 * result + firstRelevantLineIndex
-        result = 31 * result + name.hashCode()
-        result = 31 * result + lineStartOffsets.contentHashCode()
-        return result
-    }
 }
 
 // This declaration accesses IrDeclarationContainer.declarations, which is marked with this opt-in
