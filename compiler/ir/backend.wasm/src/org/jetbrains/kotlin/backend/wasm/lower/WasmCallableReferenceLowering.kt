@@ -156,7 +156,7 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
     private val context = backendContext
 
     // Per-file cache of created classes to avoid duplicates within a single file
-    private val fileLocalClassCache = mutableMapOf<CallableReferenceKey, IrClass>()
+    private val fileLocalClassCache = mutableMapOf<String, IrClass>()
 
     companion object {
         val STATIC_FUNCTION_REFERENCE by IrDeclarationOriginImpl.Regular
@@ -268,14 +268,6 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
         if (this.getClass()?.isSingleFieldValueClass == true || this.isPrimitiveType() || this.isUnsignedType() || this.classifierOrNull is IrTypeParameterSymbol) this
         else backendContext.irBuiltIns.anyNType
 
-    private data class CallableReferenceKey(
-        val superClassType: IrType,
-        val arity: Int,
-        val isSuspend: Boolean,
-        val isKReference: Boolean,
-        val boundValueTypes: List<IrType>,
-    )
-
     override fun lower(irFile: IrFile) {
         // Clear the per-file cache for each new file
         fileLocalClassCache.clear()
@@ -368,26 +360,31 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
         else -> "A" // anyNType (reference type)
     }
 
-    // The name generated from the key is not just for debugging purposes: it must faithfully
-    // reflect the key as the linker uses this string name for cross-file deduplication.
-    private fun callableReferenceKeyToName(key: CallableReferenceKey): Name {
-        val arity = key.arity
-        val prefix = if (key.isKReference) "K" else ""
-        val suspendPrefix = if (key.isSuspend) "Suspend" else ""
+    // This key must faithfully reflect the class type as both this lowering and the linker use this
+    // string name for class deduplication.
+    private fun callableReferenceKey(
+        superClassType: IrType,
+        arity: Int,
+        isSuspend: Boolean,
+        isKReference: Boolean,
+        boundValueTypes: List<IrType>,
+    ): String {
+        val prefix = if (isKReference) "K" else ""
+        val suspendPrefix = if (isSuspend) "Suspend" else ""
 
-        val superClassSuffix = when (key.superClassType) {
+        val superClassSuffix = when (superClassType) {
             backendContext.wasmSymbols.reflectionSymbols.kFunctionImpl.defaultType -> "R"  // Reflection
             backendContext.wasmSymbols.reflectionSymbols.kFunctionErrorImpl.defaultType -> "E"  // Error
             else -> "" // Non-reflection (Any)
         }
 
-        val boundInfo = if (key.boundValueTypes.isNotEmpty()) {
+        val boundInfo = if (boundValueTypes.isNotEmpty()) {
             // Encode the types of bound values to avoid collisions.
-            val typeCodes = key.boundValueTypes.joinToString("") { it.toTypeSignatureCode() }
-            "bound${key.boundValueTypes.size}_$typeCodes"
+            val typeCodes = boundValueTypes.joinToString("") { it.toTypeSignatureCode() }
+            "bound${boundValueTypes.size}_$typeCodes"
         } else ""
 
-        return Name.identifier("${prefix}${suspendPrefix}Function${arity}${superClassSuffix}_${boundInfo}")
+        return "${prefix}${suspendPrefix}Function${arity}${superClassSuffix}_${boundInfo}"
     }
 
     private fun createOrGetFunctionReferenceClass(functionReference: IrRichFunctionReference, irFile: IrFile): IrClass {
@@ -399,7 +396,7 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
 
         val superInterfaceType = functionReference.type.removeProjections()
         val additionalInterfaces = getAdditionalInterfaces(functionReference)
-        val key = CallableReferenceKey(superClass, arity, isSuspend, isKReference, boundValueTypes)
+        val key = callableReferenceKey(superClass, arity, isSuspend, isKReference, boundValueTypes)
 
         // Build the erased function type that matches what callRef expects.
         val anyNType = backendContext.irBuiltIns.anyNType
@@ -416,7 +413,7 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
             startOffset = SYNTHETIC_OFFSET
             endOffset = SYNTHETIC_OFFSET
             origin = FUNCTION_REFERENCE_IMPL
-            name = callableReferenceKeyToName(key)
+            name = Name.identifier(key)
             visibility = DescriptorVisibilities.PUBLIC
         }.apply {
             this.parent = irFile
@@ -490,11 +487,12 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
             ?: error("Super interface of callable reference must have an invoke method")
 
         buildInvokeMethod(
-            key,
             superFunctionSymbol,
             functionReferenceClass,
             fields,
-            funcField
+            funcField,
+            arity,
+            isSuspend
         ).apply {
             postprocessInvoke(this, functionReference.secondFunctionInterface)
         }
@@ -682,11 +680,12 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
     }
 
     private fun buildInvokeMethod(
-        classKey: CallableReferenceKey,
         superFunctionSymbol: IrSimpleFunctionSymbol,
         functionReferenceClass: IrClass,
         boundFields: List<IrField>,
         funcField: IrField,
+        arity: Int,
+        isSuspend_: Boolean,
     ): IrSimpleFunction {
         val anyNType = backendContext.irBuiltIns.anyNType
 
@@ -696,12 +695,12 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
             origin = GENERATED_MEMBER_IN_CALLABLE_REFERENCE
             name = Name.identifier("invoke")
             returnType = anyNType
-            isSuspend = classKey.isSuspend
+            isSuspend = isSuspend_
         }.apply {
 
             parameters += createDispatchReceiverParameterWithClassParent()
 
-            val nonDispatchParameters = List(classKey.arity) { index ->
+            val nonDispatchParameters = List(arity) { index ->
                 buildValueParameter(this) {
                     name = Name.identifier("p${index}")
                     startOffset = SYNTHETIC_OFFSET
@@ -723,7 +722,7 @@ class WasmCallableReferenceLowering(val backendContext: WasmBackendContext) : Fi
                         for (parameter in nonDispatchParameters) {
                             arguments.add(irGet(parameter))
                         }
-                        if (classKey.isSuspend) {
+                        if (isSuspend_) {
                             val getContinuationSymbol = backendContext.symbols.getContinuation
                             arguments.add(
                                 irCall(
