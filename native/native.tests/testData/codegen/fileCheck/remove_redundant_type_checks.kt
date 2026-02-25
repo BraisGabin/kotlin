@@ -894,27 +894,32 @@ fun test40(o: IntWrapper?): Int {
 // CHECK-LABEL: define internal void @"kfun:Test40.<init>#internal"
 object Test40 {
     // CHECK: call void @"kfun:A#<init>(kotlin.String;kotlin.Int;kotlin.Int){}"
+    // CHECK: call i32 @"kfun:#test39(kotlin.Any){}kotlin.Int
     // CHECK-DEBUG-NOT: {{call|call zeroext}} i1 @IsSubtype
     // CHECK-DEBUG-NOT: call ptr @"kfun:kotlin.native.internal#downcast
     // CHECK-OPT-NOT: {{call|call zeroext}} i1 @IsSubclassFast
+    // CHECK: getelementptr inbounds %"kclassbody:Test40#internal"
     val z1 = test39(A("zzz", 42, 117)) // To deny possibility of placing into static data.
 
     // CHECK: call void @"kfun:IntWrapper#<constructor>#static(kotlin.Int){}"
+    // CHECK: call i32 @"kfun:#test40(IntWrapper?){}kotlin.Int
     // CHECK-DEBUG-NOT: {{call|call zeroext}} i1 @IsSubtype
     // CHECK-DEBUG-NOT: call ptr @"kfun:kotlin.native.internal#downcast
     // CHECK-OPT-NOT: {{call|call zeroext}} i1 @IsSubclassFast
+    // CHECK: getelementptr inbounds %"kclassbody:Test40#internal"
     val z2 = test40(IntWrapper(42)) // To deny possibility of placing into static data.
 
-    // CHECK: call ptr @AllocInstance(ptr noundef @"kclass:IntWrapper"
+    // CHECK: call i32 @"kfun:#test40(IntWrapper?){}kotlin.Int
     // CHECK-DEBUG-NOT: {{call|call zeroext}} i1 @IsSubtype
     // CHECK-DEBUG-NOT: call ptr @"kfun:kotlin.native.internal#downcast
     // CHECK-OPT-NOT: {{call|call zeroext}} i1 @IsSubclassFast
+    // CHECK: getelementptr inbounds %"kclassbody:Test40#internal"
     val z3 = test40(kotlin.native.internal.createUninitializedInstance<IntWrapper>()) // To deny possibility of placing into static data.
 
-    // CHECK: call ptr @AllocInstance(ptr noundef @"kclass:IntWrapper"
     // CHECK-DEBUG-NOT: {{call|call zeroext}} i1 @IsSubtype
     // CHECK-DEBUG-NOT: call ptr @"kfun:kotlin.native.internal#downcast
     // CHECK-OPT-NOT: {{call|call zeroext}} i1 @IsSubclassFast
+    // CHECK: getelementptr inbounds %"kclassbody:Test40#internal"
     val z4: IntWrapper = kotlin.native.internal.createUninitializedInstance<IntWrapper>() // To deny possibility of placing into static data.
 }
 // CHECK-LABEL: epilogue:
