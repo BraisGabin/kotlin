@@ -319,7 +319,10 @@ class Fir2IrCallableDeclarationsGenerator(private val c: Fir2IrComponents) : Fir
                                     val evaluatedInitializer =
                                         property.evaluatedInitializer?.unwrapOr<FirExpression> { error("No evaluated initializer found for const property ${property.name}") }
                                     evaluatedInitializer?.let {
-                                        field.initializer = factory.createExpressionBody(evaluatedInitializer.toIrConst(constType))
+                                        field.initializer = when(it) {
+                                            is FirLiteralExpression -> factory.createExpressionBody(it.toIrConst(constType))
+                                            else -> error("Unsupported initializer type for const property: ${it::class.simpleName}")
+                                        }
                                     }
                                 }
                             }
