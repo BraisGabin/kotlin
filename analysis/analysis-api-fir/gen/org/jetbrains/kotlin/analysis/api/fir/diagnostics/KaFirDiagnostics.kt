@@ -3093,6 +3093,10 @@ sealed interface KaFirDiagnostic<PSI : PsiElement> : KaDiagnosticWithPsi<PSI> {
         override val diagnosticClass get() = ConstValWithoutInitializer::class
     }
 
+    interface ConstValWithEbf : KaFirDiagnostic<KtProperty> {
+        override val diagnosticClass get() = ConstValWithEbf::class
+    }
+
     interface ConstValWithNonConstInitializer : KaFirDiagnostic<KtExpression> {
         override val diagnosticClass get() = ConstValWithNonConstInitializer::class
     }
