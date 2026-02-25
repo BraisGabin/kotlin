@@ -85,7 +85,7 @@ fun deserializeFromByteArray(
         irInterner = irInterner
     )
     for (declarationProto in irProto.declarationList) {
-        deserializer.deserializeDeclaration(declarationProto, setParent = false)
+        deserializer.deserializeDeclaration(declarationProto, toplevelParent.startOffset, setParent = false)
     }
 
     val signaturer = symbolTable.signaturer
