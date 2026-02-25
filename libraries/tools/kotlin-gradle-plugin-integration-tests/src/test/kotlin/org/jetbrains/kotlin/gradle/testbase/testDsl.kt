@@ -753,7 +753,7 @@ private fun collectGradleJvmOptions(
     val koverOutputDir = System.getProperty("koverOutputDir")
     if (koverEnabled && koverAgentJar != null && koverOutputDir != null) {
         val koverDir = File(koverOutputDir)
-        val reportFile = File(koverDir, "gradle-daemon.ic")
+        val reportFile = File(koverDir, "gradle-daemon-${System.currentTimeMillis()}.ic")
         // Kover agent requires arguments to be passed via a file with format: file:<path_to_args_file>
         // Use stable file in koverOutputDir instead of temp file - temp files get deleted before Gradle daemon reads them
         val argsFile = File(koverDir, "kover-agent-gradle.args")
