@@ -24,6 +24,22 @@ fun err5() {
     ::x()()
 }
 
+fun err6() {
+    ::x(foo)
+}
+
+fun err7() {
+    ::x(fun foo() {})
+}
+
+fun err8() {
+    String::class()
+}
+
+fun err9() {
+    String::class(foo)
+}
+
 fun typeArgumentsError() {
     ::a<b>
     ::a<b,c<*>>

@@ -1574,6 +1574,18 @@ public class OutOfContentRootGetOrBuildFirTestGenerated extends AbstractOutOfCon
     }
 
     @Test
+    @TestMetadata("callableReferenceWithArgument.kt")
+    public void testCallableReferenceWithArgument() {
+      run("callableReferenceWithArgument.kt");
+    }
+
+    @Test
+    @TestMetadata("classLiteralWithArgument.kt")
+    public void testClassLiteralWithArgument() {
+      run("classLiteralWithArgument.kt");
+    }
+
+    @Test
     @TestMetadata("contextParameterOnErrorPrimaryConstructor.kt")
     public void testContextParameterOnErrorPrimaryConstructor() {
       run("contextParameterOnErrorPrimaryConstructor.kt");
