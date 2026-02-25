@@ -1574,6 +1574,12 @@ public class SourceGetOrBuildFirTestGenerated extends AbstractSourceGetOrBuildFi
     }
 
     @Test
+    @TestMetadata("callableReferenceWithArgument.kt")
+    public void testCallableReferenceWithArgument() {
+      run("callableReferenceWithArgument.kt");
+    }
+
+    @Test
     @TestMetadata("contextParameterOnErrorPrimaryConstructor.kt")
     public void testContextParameterOnErrorPrimaryConstructor() {
       run("contextParameterOnErrorPrimaryConstructor.kt");
