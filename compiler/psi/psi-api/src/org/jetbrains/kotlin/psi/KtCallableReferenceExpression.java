@@ -7,6 +7,8 @@ package org.jetbrains.kotlin.psi;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiErrorElement;
+import com.intellij.psi.util.PsiTreeUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.kotlin.lexer.KtTokens;
@@ -46,6 +48,19 @@ public class KtCallableReferenceExpression extends KtExpressionImpl implements K
     @Override
     public PsiElement findColonColon() {
         return findChildByType(KtTokens.COLONCOLON);
+    }
+
+    /**
+     * Returns the erroneous value argument list that may be present after the callable reference.
+     * This syntax is invalid: {@code ::foo(args)}.
+     *
+     * @return the erroneous value argument list, or null if not present
+     */
+    @Nullable
+    public KtValueArgumentList getErrorValueArgumentList() {
+        PsiErrorElement errorElement = PsiTreeUtil.findChildOfType(this, PsiErrorElement.class);
+        if (errorElement == null) return null;
+        return PsiTreeUtil.findChildOfType(errorElement, KtValueArgumentList.class);
     }
 
     @Override
