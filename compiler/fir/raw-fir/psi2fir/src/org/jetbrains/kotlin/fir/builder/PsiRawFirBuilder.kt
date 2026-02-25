@@ -3788,6 +3788,14 @@ open class PsiRawFirBuilder(
                 }
                 explicitReceiver = expression.receiverExpression?.toFirExpression("Incorrect receiver expression")
                 hasQuestionMarkAtLHS = expression.hasQuestionMarks
+                expression.errorValueArgumentList?.let { errorArgList ->
+                    errorArgumentList = buildArgumentList {
+                        source = errorArgList.toFirSourceElement()
+                        for (argument in errorArgList.arguments) {
+                            arguments += buildOrLazyExpression(argument.toFirSourceElement()) { argument.toFirExpression() }
+                        }
+                    }
+                }
             }
         }
 

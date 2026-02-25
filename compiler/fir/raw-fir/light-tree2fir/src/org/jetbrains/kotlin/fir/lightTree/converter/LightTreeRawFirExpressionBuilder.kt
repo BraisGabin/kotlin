@@ -618,10 +618,12 @@ class LightTreeRawFirExpressionBuilder(
         var hasQuestionMarkAtLHS = false
         var firReceiverExpression: FirExpression? = null
         lateinit var namedReference: FirNamedReference
+        var errorArgumentListNode: LighterASTNode? = null
         callableReferenceExpression.forEachChildren {
             when (it.tokenType) {
                 COLONCOLON -> isReceiver = false
                 QUEST -> hasQuestionMarkAtLHS = true
+                VALUE_ARGUMENT_LIST -> errorArgumentListNode = it
                 else -> if (it.isExpression()) {
                     if (isReceiver) {
                         firReceiverExpression = getAsFirExpression(it, "Incorrect receiver expression")
@@ -637,6 +639,12 @@ class LightTreeRawFirExpressionBuilder(
             calleeReference = namedReference
             explicitReceiver = firReceiverExpression
             this.hasQuestionMarkAtLHS = hasQuestionMarkAtLHS
+            errorArgumentListNode?.let { argListNode ->
+                errorArgumentList = buildArgumentList {
+                    source = argListNode.toFirSourceElement()
+                    arguments += convertValueArguments(argListNode)
+                }
+            }
         }
     }
 
