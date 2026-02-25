@@ -37,7 +37,6 @@ import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnnotation as P
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrAnonymousInit as ProtoAnonymousInit
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrClass as ProtoClass
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrConstructor as ProtoConstructor
-import org.jetbrains.kotlin.backend.common.serialization.proto.IrConstructorCall as ProtoConstructorCall
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrDeclaration as ProtoDeclaration
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrDeclarationBase as ProtoDeclarationBase
 import org.jetbrains.kotlin.backend.common.serialization.proto.IrDefinitelyNotNullType as ProtoDefinitelyNotNullType
@@ -192,16 +191,16 @@ class IrDeclarationDeserializer(
         return type
     }
 
-    private var currentParent: IrDeclarationParent = parent
+    private var currentDeclarationParent: IrDeclarationParent = parent
 
-    private inline fun <T : IrDeclarationParent> T.usingParent(block: T.() -> Unit): T =
+    private inline fun <T : IrDeclarationParent> T.usingDeclarationParent(block: T.() -> Unit): T =
         this.apply {
-            val oldParent = currentParent
-            currentParent = this
+            val oldParent = currentDeclarationParent
+            currentDeclarationParent = this
             try {
                 block(this)
             } finally {
-                currentParent = oldParent
+                currentDeclarationParent = oldParent
             }
         }
 
@@ -237,7 +236,7 @@ class IrDeclarationDeserializer(
         // avoid duplicate annotations for local variables
         result.annotations = deserializeAnnotations(proto.annotationList)
         if (setParent) {
-            result.parent = currentParent
+            result.parent = currentDeclarationParent
         }
         return result
     }
@@ -292,7 +291,7 @@ class IrDeclarationDeserializer(
         }
 
         typeParameter.annotations = deserializeAnnotations(proto.base.annotationList)
-        if (setParent) typeParameter.parent = currentParent
+        if (setParent) typeParameter.parent = currentDeclarationParent
         return typeParameter
     }
 
@@ -350,7 +349,7 @@ class IrDeclarationDeserializer(
                         hasEnumEntries = flags.hasEnumEntries,
                     )
                 }
-            }.usingParent {
+            }.usingDeclarationParent {
                 typeParameters = deserializeTypeParameters(proto.typeParameterList, true)
 
                 superTypes = proto.superTypeList.memoryOptimizedMap { deserializeIrType(it) }
@@ -422,7 +421,7 @@ class IrDeclarationDeserializer(
                         expandedType = deserializeIrType(nameType.typeIndex),
                     )
                 }
-            }.usingParent {
+            }.usingDeclarationParent {
                 typeParameters = deserializeTypeParameters(proto.typeParameterList, true)
             }
         }
@@ -526,7 +525,7 @@ class IrDeclarationDeserializer(
     ): T = withDeserializedIrDeclarationBase(proto.base, setParent) { symbol, idSig, startOffset, endOffset, origin, fcode ->
         val functionSymbol: S = symbol.checkSymbolType(fallbackSymbolKind)
         symbolTable.withScope(functionSymbol) {
-            block(functionSymbol, idSig, startOffset, endOffset, origin, fcode).usingParent {
+            block(functionSymbol, idSig, startOffset, endOffset, origin, fcode).usingDeclarationParent {
                 typeParameters = deserializeTypeParameters(proto.typeParameterList, false)
                 val nameType = BinaryNameAndType.decode(proto.nameType)
                 returnType = deserializeIrType(nameType.typeIndex)
@@ -558,7 +557,7 @@ class IrDeclarationDeserializer(
         val oldBodiesPolicy = areFunctionBodiesDeserialized
         try {
             areFunctionBodiesDeserialized = true
-            usingParent { block() }
+            usingDeclarationParent { block() }
         } finally {
             areFunctionBodiesDeserialized = oldBodiesPolicy
         }
@@ -693,7 +692,7 @@ class IrDeclarationDeserializer(
                 }
             }
 
-            field.usingParent {
+            field.usingDeclarationParent {
                 if (proto.hasInitializer()) {
                     withInitializerGuard(isConst) {
                         initializer = deserializeExpressionBody(proto.initializer)
