@@ -8,7 +8,7 @@
 package org.jetbrains.kotlin.fir.lightTree.converter
 
 import com.intellij.lang.LighterASTNode
-import com.intellij.psi.TokenType
+import com.intellij.psi.TokenType.ERROR_ELEMENT
 import com.intellij.util.diff.FlyweightCapableTreeStructure
 import org.jetbrains.kotlin.*
 import org.jetbrains.kotlin.ElementTypeUtils.getOperationSymbol
@@ -618,15 +618,31 @@ class LightTreeRawFirExpressionBuilder(
         var hasQuestionMarkAtLHS = false
         var firReceiverExpression: FirExpression? = null
         lateinit var namedReference: FirNamedReference
-        callableReferenceExpression.forEachChildren {
-            when (it.tokenType) {
+        var errorArgumentListNode: LighterASTNode? = null
+
+        for (child in callableReferenceExpression.getChildrenAsArray()) {
+            if (child == null) break
+            when (child.tokenType) {
                 COLONCOLON -> isReceiver = false
                 QUEST -> hasQuestionMarkAtLHS = true
-                else -> if (it.isExpression()) {
-                    if (isReceiver) {
-                        firReceiverExpression = getAsFirExpression(it, "Incorrect receiver expression")
-                    } else {
-                        namedReference = createSimpleNamedReference(it.toFirSourceElement(), it)
+
+                // Look for the erroneous argument list inside ERROR_ELEMENT
+                ERROR_ELEMENT -> {
+                    for (errorChild in child.getChildrenAsArray()) {
+                        if (errorChild?.tokenType == VALUE_ARGUMENT_LIST) {
+                            errorArgumentListNode = errorChild
+                            break
+                        }
+                    }
+                }
+
+                else -> {
+                    if (child.isExpression()) {
+                        if (isReceiver) {
+                            firReceiverExpression = getAsFirExpression(child, "Incorrect receiver expression")
+                        } else {
+                            namedReference = createSimpleNamedReference(child.toFirSourceElement(), child)
+                        }
                     }
                 }
             }
@@ -637,6 +653,12 @@ class LightTreeRawFirExpressionBuilder(
             calleeReference = namedReference
             explicitReceiver = firReceiverExpression
             this.hasQuestionMarkAtLHS = hasQuestionMarkAtLHS
+            errorArgumentListNode?.let {
+                errorArgumentList = buildArgumentList {
+                    source = it.toFirSourceElement()
+                    arguments += convertValueArguments(it)
+                }
+            }
         }
     }
 
@@ -657,7 +679,7 @@ class LightTreeRawFirExpressionBuilder(
                     isSelector = true
                 }
                 else -> {
-                    val isEffectiveSelector = isSelector && tokenType != TokenType.ERROR_ELEMENT
+                    val isEffectiveSelector = isSelector && tokenType != ERROR_ELEMENT
                     val firExpression =
                         getAsFirExpression<FirExpression>(it, "Incorrect ${if (isEffectiveSelector) "selector" else "receiver"} expression")
                     if (isEffectiveSelector) {
@@ -735,7 +757,7 @@ class LightTreeRawFirExpressionBuilder(
                     SUPER_EXPRESSION -> {
                         superNode = node
                     }
-                    PARENTHESIZED -> if (node.tokenType != TokenType.ERROR_ELEMENT) {
+                    PARENTHESIZED -> if (node.tokenType != ERROR_ELEMENT) {
                         additionalArgument = getAsFirExpression(
                             node.getExpressionInParentheses(),
                             "Incorrect invoke receiver",
@@ -749,7 +771,7 @@ class LightTreeRawFirExpressionBuilder(
                         hasArguments = true
                         valueArguments += node
                     }
-                    else -> if (node.tokenType != TokenType.ERROR_ELEMENT) {
+                    else -> if (node.tokenType != ERROR_ELEMENT) {
                         additionalArgument = getAsFirExpression(node, "Incorrect invoke receiver")
                     }
                 }
