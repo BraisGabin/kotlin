@@ -11,6 +11,7 @@ import org.jetbrains.kotlin.backend.common.lower.loops.ForLoopsLowering
 import org.jetbrains.kotlin.backend.common.phaser.PhasePrerequisites
 import org.jetbrains.kotlin.backend.jvm.*
 import org.jetbrains.kotlin.backend.jvm.JvmLoweredDeclarationOrigin.INLINE_CLASS_CONSTRUCTOR_SYNTHETIC_PARAMETER
+import org.jetbrains.kotlin.backend.jvm.ir.isInlineClassType
 import org.jetbrains.kotlin.backend.jvm.ir.shouldBeExposedByAnnotationOrFlag
 import org.jetbrains.kotlin.builtins.StandardNames
 import org.jetbrains.kotlin.config.ApiVersion
@@ -326,6 +327,27 @@ internal class JvmInlineClassLowering(context: JvmBackendContext) : JvmValueClas
                 }
             }
         }
+
+    override fun createExposedNoArgConstructor(constructor: IrConstructor): IrConstructor? {
+        if (constructor.parameters.any { !it.type.isInlineClassType() || it.defaultValue == null }) return null
+        return constructor.parentAsClass.factory.buildConstructor {
+            updateFrom(constructor)
+            isPrimary = false
+        }.apply noArg@{
+            copyFunctionSignatureFrom(constructor)
+            parameters = emptyList()
+            // Only exposed declarations should be annotated with @JvmExposeBoxed in bytecode
+            annotations = constructor.annotations.withJvmExposeBoxedAnnotation(constructor, context)
+            constructor.annotations = constructor.annotations.withoutJvmExposeBoxedAnnotation()
+            body = context.createIrBuilder(this.symbol).irBlockBody(this) {
+                +irDelegatingConstructorCall(constructor).apply {
+                    for ((index, param) in constructor.parameters.withIndex()) {
+                        arguments[index] = param.defaultValue!!.deepCopyWithSymbols(this@noArg).expression
+                    }
+                }
+            }
+        }
+    }
 
     private fun IrExpression.coerceToUnboxed() =
         coerceInlineClasses(this, this.type, this.type.unboxInlineClass())
