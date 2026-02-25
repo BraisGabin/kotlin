@@ -10,7 +10,6 @@ import org.jetbrains.kotlin.KtNodeTypes.TYPE_ARGUMENT_LIST
 import org.jetbrains.kotlin.KtSourceElement
 import org.jetbrains.kotlin.config.LanguageFeature
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
-import org.jetbrains.kotlin.diagnostics.PositioningStrategy
 import org.jetbrains.kotlin.diagnostics.SourceElementPositioningStrategies
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.FirSession
@@ -194,8 +193,9 @@ object FirClassLiteralChecker : FirGetClassCallChecker(MppCheckerKind.Common) {
         return reportWrongNumberOfTypeArguments(qualifier.explicitParent, deprecationCase)
     }
 
+    context(checkerContext: CheckerContext)
     private val FirClassLikeSymbol<*>.isTypeAliasToNonGeneric: Boolean
-        get() = this is FirTypeAliasSymbol && resolvedExpandedTypeRef.coneType.typeArguments.isEmpty()
+        get() = this is FirTypeAliasSymbol && resolvedExpandedTypeRef.coneType.fullyExpandedType().typeArguments.isEmpty()
 
     context(context: CheckerContext)
     private fun ConeKotlinType.isAllowedGenericArrayTypeInClassLiteral(): Boolean =
