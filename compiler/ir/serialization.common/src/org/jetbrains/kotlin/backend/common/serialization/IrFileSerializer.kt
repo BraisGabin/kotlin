@@ -267,7 +267,7 @@ open class IrFileSerializer(
             serEnd = UNDEFINED_OFFSET
         }
 
-        return BinaryCoordinates.encode(serStart, serEnd)
+        return BinaryCoordinatesEncoding.encode(serStart, serEnd)
     }
 
     /* ------- Strings ---------------------------------------------------------- */

@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.backend.common.serialization
 
+import org.jetbrains.kotlin.KtOffsetsOnlySourceElement
 import org.jetbrains.kotlin.backend.common.linkage.issues.IrDisallowedErrorNode
 import org.jetbrains.kotlin.backend.common.linkage.issues.IrSymbolTypeMismatchException
 import org.jetbrains.kotlin.backend.common.serialization.IrDeserializationSettings.DeserializeFunctionBodies
@@ -103,12 +104,11 @@ class IrDeclarationDeserializer(
         return makeTypeProjection(deserializeIrType(encoding.typeIndex), encoding.variance)
     }
 
-    internal fun deserializeCoordinates(rawCoordinates: Long, parentStart: Int?): Pair<Int, Int> {
+    internal fun deserializeCoordinates(rawCoordinates: Long, parentStart: Int?): KtOffsetsOnlySourceElement {
         if (isDeserializingIrType) {
-            return UNDEFINED_OFFSET to UNDEFINED_OFFSET
+            return KtOffsetsOnlySourceElement(UNDEFINED_OFFSET, UNDEFINED_OFFSET)
         } else {
-            val coordinates = BinaryCoordinates.decode(rawCoordinates)
-            return coordinates.startOffset to coordinates.endOffset
+            return BinaryCoordinatesEncoding.decode(rawCoordinates)
         }
     }
 
@@ -227,15 +227,15 @@ class IrDeclarationDeserializer(
         block: (IrSymbol, IdSignature, Int, Int, IrDeclarationOrigin, Long) -> T,
     ): T where T : IrDeclaration, T : IrSymbolOwner {
         val (s, uid) = symbolDeserializer.deserializeSymbolToDeclareInCurrentFile(proto.symbol)
-        val (startOffset, endOffset) = deserializeCoordinates(proto.coordinates, parentStart)
+        val coords = deserializeCoordinates(proto.coordinates, parentStart)
         val result = block(
             s,
             uid,
-            startOffset, endOffset,
+            coords.startOffset, coords.endOffset,
             deserializeIrDeclarationOrigin(proto.originName), proto.flags
         )
         // avoid duplicate annotations for local variables
-        result.annotations = deserializeAnnotations(proto.annotationList, startOffset)
+        result.annotations = deserializeAnnotations(proto.annotationList, coords.startOffset)
         if (setParent) {
             result.parent = currentDeclarationParent
         }
@@ -251,7 +251,7 @@ class IrDeclarationDeserializer(
     ): IrTypeParameter {
 
         val name = deserializeName(proto.name)
-        val (startOffset, endOffset) = deserializeCoordinates(proto.base.coordinates, parentStart)
+        val coords = deserializeCoordinates(proto.base.coordinates, parentStart)
         val flags = TypeParameterFlags.decode(proto.base.flags)
 
         val signature: IdSignature = symbolDeserializer.deserializeIdSignature(
@@ -266,8 +266,8 @@ class IrDeclarationDeserializer(
         val typeParameterFactory: (IrTypeParameterSymbol) -> IrTypeParameter = { symbol: IrTypeParameterSymbol ->
             createIfUnbound(symbol) {
                 irFactory.createTypeParameter(
-                    startOffset = startOffset,
-                    endOffset = endOffset,
+                    startOffset = coords.startOffset,
+                    endOffset = coords.endOffset,
                     origin = deserializeIrDeclarationOrigin(proto.base.originName),
                     name = name,
                     symbol = symbol,
@@ -292,7 +292,7 @@ class IrDeclarationDeserializer(
             )
         }
 
-        typeParameter.annotations = deserializeAnnotations(proto.base.annotationList, startOffset)
+        typeParameter.annotations = deserializeAnnotations(proto.base.annotationList, coords.startOffset)
         if (setParent) typeParameter.parent = currentDeclarationParent
         return typeParameter
     }
