@@ -2,7 +2,7 @@
 val lam = { "lam" }
 
 fun foo() {
-    ::lam<!SYNTAX!>(unresolved)<!>
+    ::lam<!SYNTAX!>(<!UNRESOLVED_REFERENCE!>unresolved<!>)<!>
     ::lam<!SYNTAX!>(::lam)<!>
     ::lam<!SYNTAX!>(fun() {})<!>
     <!UNRESOLVED_REFERENCE("invoke")!>String::class<!>(<!UNRESOLVED_REFERENCE!>unresolved<!>)
