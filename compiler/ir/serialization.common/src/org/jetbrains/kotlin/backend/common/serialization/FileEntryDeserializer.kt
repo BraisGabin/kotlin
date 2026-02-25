@@ -35,7 +35,7 @@ class FileEntryDeserializer(private val irInterner: IrInterningService) {
     }
 
     fun fileEntry(libraryFile: IrLibraryFile, proto: ProtoFile): IrFileEntry {
-        val deserializedFileEntry = if (proto.hasFileEntryId()) {
+        return if (proto.hasFileEntryId()) {
             val protoFileEntry = libraryFile.fileEntry(proto.fileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
             libraryFile.deserializeFileEntry(protoFileEntry)
         } else {
@@ -44,7 +44,6 @@ class FileEntryDeserializer(private val irInterner: IrInterningService) {
             }
             libraryFile.deserializeFileEntry(proto.fileEntry)
         }
-        return irInterner.fileEntry(deserializedFileEntry)
     }
 
     private fun IrLibraryFile.deserializeFileEntry(fileEntryProto: ProtoFileEntry): IrFileEntry {
@@ -66,6 +65,6 @@ class FileEntryDeserializer(private val irInterner: IrInterningService) {
             lineStartOffsets = lineStartOffsets,
             firstRelevantLineIndex = fileEntryProto.firstRelevantLineIndex
         )
-        return irInterner.fileEntry(file)
+        return file
     }
 }
