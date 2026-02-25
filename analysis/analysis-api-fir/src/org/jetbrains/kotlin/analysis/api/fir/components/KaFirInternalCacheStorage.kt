@@ -5,19 +5,22 @@
 
 package org.jetbrains.kotlin.analysis.api.fir.components
 
+import com.github.benmanes.caffeine.cache.Caffeine
 import com.intellij.psi.util.CachedValue
 import org.jetbrains.kotlin.analysis.api.KaSession
 import org.jetbrains.kotlin.analysis.api.components.KaSessionComponent
 import org.jetbrains.kotlin.analysis.api.fir.KaFirSession
-import org.jetbrains.kotlin.analysis.api.platform.caches.NullableConcurrentCache
+import org.jetbrains.kotlin.analysis.api.platform.caches.NullableCaffeineCache
+import org.jetbrains.kotlin.analysis.api.platform.caches.withStatsCounter
 import org.jetbrains.kotlin.analysis.api.resolution.KaCallResolutionAttempt
 import org.jetbrains.kotlin.analysis.api.resolution.KaSymbolBasedReference
 import org.jetbrains.kotlin.analysis.api.resolution.KaSymbolResolutionAttempt
 import org.jetbrains.kotlin.analysis.api.symbols.KaSymbol
 import org.jetbrains.kotlin.analysis.low.level.api.fir.file.structure.LLFirInBlockModificationTracker
+import org.jetbrains.kotlin.analysis.low.level.api.fir.statistics.LLStatisticsService
 import org.jetbrains.kotlin.analysis.utils.caches.softCachedValue
 import org.jetbrains.kotlin.psi.KtElement
-import java.util.concurrent.ConcurrentHashMap
+import com.github.benmanes.caffeine.cache.Cache
 
 /**
  * This is a dedicated place for caches stored directly inside [KaSession].
@@ -33,20 +36,32 @@ import java.util.concurrent.ConcurrentHashMap
 internal class KaFirInternalCacheStorage(private val analysisSession: KaFirSession) {
     private val project get() = analysisSession.project
 
-    val resolveCallCache: CachedValue<NullableConcurrentCache<KtElement, KaCallResolutionAttempt?>> by lazy {
+    val resolveCallCache: CachedValue<NullableCaffeineCache<KtElement, KaCallResolutionAttempt>> by lazy {
         softCachedValueWithPsiKey {
-            NullableConcurrentCache()
+            NullableCaffeineCache {
+                Caffeine
+                    .newBuilder()
+                    .withStatsCounter(LLStatisticsService.getInstance(project)?.analysisSessions?.resolveCallCacheStatsCounter)
+            }
         }
     }
 
-    val resolveSymbolCache: CachedValue<NullableConcurrentCache<KtElement, KaSymbolResolutionAttempt?>> by lazy {
+    val resolveSymbolCache: CachedValue<NullableCaffeineCache<KtElement, KaSymbolResolutionAttempt>> by lazy {
         softCachedValueWithPsiKey {
-            NullableConcurrentCache()
+            NullableCaffeineCache {
+                Caffeine
+                    .newBuilder()
+                    .withStatsCounter(LLStatisticsService.getInstance(project)?.analysisSessions?.resolveSymbolCacheStatsCounter)
+            }
         }
     }
 
-    val resolveToSymbolsCache: CachedValue<ConcurrentHashMap<KaSymbolBasedReference, Collection<KaSymbol>>> by lazy {
-        softCachedValueWithPsiKey { ConcurrentHashMap<KaSymbolBasedReference, Collection<KaSymbol>>() }
+    val resolveToSymbolsCache: CachedValue<Cache<KaSymbolBasedReference, Collection<KaSymbol>>> by lazy {
+        softCachedValueWithPsiKey {
+            Caffeine.newBuilder()
+                .withStatsCounter(LLStatisticsService.getInstance(project)?.analysisSessions?.resolveToSymbolsCacheStatsCounter)
+                .build()
+        }
     }
 
     /**
