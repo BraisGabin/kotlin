@@ -22,7 +22,6 @@ import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirDelegatedConstructorCall
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationCall
-import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
 import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaField
 import org.jetbrains.kotlin.fir.references.*
@@ -1021,22 +1020,13 @@ class CallAndReferenceGenerator(
 
     private fun IrExpression.applyDefaultEvaluatedAnnotationArguments(constructor: FirConstructor?): IrExpression {
         if (this !is IrMemberAccessExpression<*> || constructor == null) return this
-        if (arguments.all {it != null}) return this
+        if (arguments.all { it != null }) return this
 
         for (i in arguments.indices) {
             if (arguments[i] == null) {
                 val parameter = constructor.valueParameters[i]
-                var evaluatedArg =
-                    parameter.evaluatedInitializer?.unwrapOr<FirExpression> { error("No evaluated initializer") }
-
-                // Stubs cannot be evaluated and are skipped
-                if (evaluatedArg == null) {
-                    if (parameter.defaultValue is FirExpressionStub) {
-                        continue
-                    }
-                    error("No evaluated initializer for annotation parameter ${parameter.name}")
-                }
-
+                val evaluatedArg =
+                    parameter.evaluatedInitializer?.unwrapOr<FirExpression> { error("No evaluated initializer") } ?: continue
                 arguments[i] = convertArgument(evaluatedArg, constructor.valueParameters[i], ConeSubstitutor.Empty)
             }
         }
@@ -1599,8 +1589,8 @@ class CallAndReferenceGenerator(
                         receiverInfo.contextArgumentOffset() + contextParameters.indexOf(parameter)
                     }
                     val irExpression = if (visitor.annotationMode && call is FirAnnotationCall) {
-                        val evaluatedArg = call.argumentMapping.mapping[parameter.name]!!
-                        convertArgument(evaluatedArg, parameter, substitutor)
+                        val evaluatedArg = call.argumentMapping.mapping[parameter.name]
+                        convertArgument(evaluatedArg ?: argument, parameter, substitutor)
                     } else {
                         convertArgument(argument, parameter, substitutor)
                     }
