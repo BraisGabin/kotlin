@@ -12,14 +12,13 @@ import org.jetbrains.kotlin.gradle.plugin.launch
 internal val KotlinToolingDiagnosticsSetupAction = KotlinProjectSetupAction {
     val collectorProvider = kotlinToolingDiagnosticsCollectorProvider
     val reporterProvider = collectorProvider.flatMap { it.parameters.problemsReporterFactory }.map { it.getInstance(objects) }
-    val diagnosticRenderingOptions = ToolingDiagnosticRenderingOptions.forProject(this)
+    val diagnosticsContext = toolingDiagnosticsContext
 
     // Setup reporting from tasks
     tasks.withType(UsesKotlinToolingDiagnostics::class.java).configureEach {
         it.usesService(collectorProvider)
         it.toolingDiagnosticsCollector.value(collectorProvider)
-        it.projectPath.set(project.path)
-        it.diagnosticRenderingOptions.set(diagnosticRenderingOptions)
+        it.toolingDiagnosticsContext.set(diagnosticsContext)
     }
 
     // Launch checkers. Note that they are invoked eagerly to give them a fine-grained
@@ -33,7 +32,7 @@ internal val KotlinToolingDiagnosticsSetupAction = KotlinProjectSetupAction {
     project.launch {
         configurationResult.await()
         val diagnostics = collectorProvider.map { it.getDiagnosticsForProject(project.path) }.get()
-        diagnostics.reportProblems(reporterProvider.get(), diagnosticRenderingOptions)
+        diagnostics.reportProblems(reporterProvider.get(), diagnosticsContext.renderingOptions)
     }
 
     // Schedule switching of Collector to transparent mode, so that any diagnostics reported
