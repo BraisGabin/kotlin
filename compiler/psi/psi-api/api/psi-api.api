@@ -982,6 +982,7 @@ public class org/jetbrains/kotlin/psi/KtCallableReferenceExpression : org/jetbra
 	public fun accept (Lorg/jetbrains/kotlin/psi/KtVisitor;Ljava/lang/Object;)Ljava/lang/Object;
 	public fun findColonColon ()Lcom/intellij/psi/PsiElement;
 	public fun getCallableReference ()Lorg/jetbrains/kotlin/psi/KtSimpleNameExpression;
+	public fun getErrorValueArgumentList ()Lorg/jetbrains/kotlin/psi/KtValueArgumentList;
 }
 
 public class org/jetbrains/kotlin/psi/KtCatchClause : org/jetbrains/kotlin/psi/KtElementImpl {
