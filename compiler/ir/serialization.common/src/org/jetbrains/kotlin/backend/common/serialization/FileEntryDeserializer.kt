@@ -38,17 +38,16 @@ class FileEntryDeserializer(private val irInterner: IrInterningService) {
     }
 
     fun fileEntry(libraryFile: IrLibraryFile, proto: ProtoFile): IrFileEntry {
-        return if (proto.hasFileEntryId())
-            cache.getOrPut(ProtoCacheKey(libraryFile, proto.fileEntryId)) {
-                val protoFileEntry = libraryFile.fileEntry(proto.fileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
-                irInterner.fileEntry(libraryFile.deserializeFileEntry(protoFileEntry))
-            }
-        else {
+        val deserializedFileEntry = if (proto.hasFileEntryId()) {
+            val protoFileEntry = libraryFile.fileEntry(proto.fileEntryId) ?: error("Invalid KLib: cannot read file entry by its index")
+            libraryFile.deserializeFileEntry(protoFileEntry)
+        } else {
             require(proto.hasFileEntry()) {
                 "Invalid KLib: either fileEntry or fileEntryId must be present"
             }
-            irInterner.fileEntry(libraryFile.deserializeFileEntry(proto.fileEntry))
+            libraryFile.deserializeFileEntry(proto.fileEntry)
         }
+        return irInterner.fileEntry(deserializedFileEntry)
     }
 
     private fun IrLibraryFile.deserializeFileEntry(fileEntryProto: ProtoFileEntry): IrFileEntry {
