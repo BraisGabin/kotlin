@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.fir.expressions.FirAnnotationCall
 import org.jetbrains.kotlin.fir.expressions.FirDelegatedConstructorCall
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
 import org.jetbrains.kotlin.fir.expressions.builder.buildAnnotationCall
+import org.jetbrains.kotlin.fir.expressions.impl.FirExpressionStub
 import org.jetbrains.kotlin.fir.expressions.impl.FirResolvedArgumentList
 import org.jetbrains.kotlin.fir.java.declarations.FirJavaField
 import org.jetbrains.kotlin.fir.references.*
@@ -1025,12 +1026,17 @@ class CallAndReferenceGenerator(
         for (i in arguments.indices) {
             if (arguments[i] == null) {
                 val parameter = constructor.valueParameters[i]
-                var evaluatedArg = parameter.evaluatedInitializer?.unwrapOr<FirExpression> { throw AssertionError("No evaluated initializer") }
+                var evaluatedArg =
+                    parameter.evaluatedInitializer?.unwrapOr<FirExpression> { error("No evaluated initializer") }
+
+                // Stubs cannot be evaluated and are skipped
                 if (evaluatedArg == null) {
-                    // There are some annotations that don't get visited by FirDeclarationResolveTransformer
-                    evaluatedArg = FirExpressionEvaluator.evaluateParameterDefaultValue(parameter, session)!!
-                        .unwrapOr<FirExpression> { throw AssertionError("No evaluated initializer") }!!
+                    if (parameter.defaultValue is FirExpressionStub) {
+                        continue
+                    }
+                    error("No evaluated initializer for annotation parameter ${parameter.name}")
                 }
+
                 arguments[i] = convertArgument(evaluatedArg, constructor.valueParameters[i], ConeSubstitutor.Empty)
             }
         }
