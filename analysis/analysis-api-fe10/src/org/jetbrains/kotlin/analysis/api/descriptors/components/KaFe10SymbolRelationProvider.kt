@@ -203,7 +203,7 @@ internal class KaFe10SymbolRelationProvider(
             (getDescriptor() as SamConstructorDescriptor).baseDescriptorForSynthetic.toKaClassSymbol(analysisContext)
         }
 
-    override val KaClassLikeSymbol.samMethod: KaNamedFunctionSymbol
+    override val KaClassLikeSymbol.functionalInterfaceFunction: KaNamedFunctionSymbol
         get() = withValidityAssertion {
             throw NotImplementedError("Method is not implemented for FE 1.0")
         }

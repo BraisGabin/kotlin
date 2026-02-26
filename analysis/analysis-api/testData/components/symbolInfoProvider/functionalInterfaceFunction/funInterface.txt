@@ -42,7 +42,7 @@ CLASS:
   deprecationStatus: null
   importableFqName: IntPredicate
 
-SAM METHOD:
+FUNCTIONAL INTERFACE FUNCTION:
   KaNamedFunctionSymbol:
   annotations: []
   callableId: /IntPredicate.accept

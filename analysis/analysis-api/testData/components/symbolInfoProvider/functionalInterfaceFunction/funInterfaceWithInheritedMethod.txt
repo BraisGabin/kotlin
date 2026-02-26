@@ -1,7 +1,7 @@
 CLASS:
   KaNamedClassSymbol:
   annotations: []
-  classId: IntPredicate
+  classId: Derived
   classKind: INTERFACE
   companionObject: null
   compilerVisibility: Public
@@ -15,20 +15,20 @@ CLASS:
   isInner: false
   location: TOP_LEVEL
   modality: ABSTRACT
-  name: IntPredicate
+  name: Derived
   origin: SOURCE
   superTypes: [
     KaUsualClassType:
       abbreviation: null
       annotations: []
-      classId: kotlin/Any
+      classId: Base
       qualifiers: [
         KaResolvedClassTypeQualifier:
-          name: Any
-          symbol: KaNamedClassSymbol(kotlin/Any)
+          name: Base
+          symbol: KaNamedClassSymbol(Base)
           typeArguments: []
       ]
-      symbol: KaNamedClassSymbol(kotlin/Any)
+      symbol: KaNamedClassSymbol(Base)
       typeArguments: []
       isMarkedNullable: false
       isNullable: false
@@ -36,16 +36,16 @@ CLASS:
   ]
   typeParameters: []
   visibility: PUBLIC
-  getContainingFileSymbol: KaFileSymbol(typealias.kt)
+  getContainingFileSymbol: KaFileSymbol(funInterfaceWithInheritedMethod.kt)
   getContainingModule: KaSourceModule "Sources of main"
   annotationApplicableTargets: null
   deprecationStatus: null
-  importableFqName: IntPredicate
+  importableFqName: Derived
 
-SAM METHOD:
+FUNCTIONAL INTERFACE FUNCTION:
   KaNamedFunctionSymbol:
   annotations: []
-  callableId: /IntPredicate.accept
+  callableId: /Base.accept
   compilerVisibility: Public
   contextParameters: []
   contextReceivers: []
@@ -124,8 +124,8 @@ SAM METHOD:
         isNullable: false
         hasFlexibleNullability: false
       visibility: PUBLIC
-      getContainingFileSymbol: KaFileSymbol(typealias.kt)
-      getContainingJvmClassName: IntPredicate
+      getContainingFileSymbol: KaFileSymbol(funInterfaceWithInheritedMethod.kt)
+      getContainingJvmClassName: Base
       getContainingModule: KaSourceModule "Sources of main"
       deprecationStatus: null
       importableFqName: null
@@ -134,20 +134,20 @@ SAM METHOD:
   getDispatchReceiver(): KaUsualClassType:
     abbreviation: null
     annotations: []
-    classId: IntPredicate
+    classId: Base
     qualifiers: [
       KaResolvedClassTypeQualifier:
-        name: IntPredicate
-        symbol: KaNamedClassSymbol(IntPredicate)
+        name: Base
+        symbol: KaNamedClassSymbol(Base)
         typeArguments: []
     ]
-    symbol: KaNamedClassSymbol(IntPredicate)
+    symbol: KaNamedClassSymbol(Base)
     typeArguments: []
     isMarkedNullable: false
     isNullable: false
     hasFlexibleNullability: false
-  getContainingFileSymbol: KaFileSymbol(typealias.kt)
-  getContainingJvmClassName: IntPredicate
+  getContainingFileSymbol: KaFileSymbol(funInterfaceWithInheritedMethod.kt)
+  getContainingJvmClassName: Base
   canBeOperator: false
   getContainingModule: KaSourceModule "Sources of main"
   deprecationStatus: null

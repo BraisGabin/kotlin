@@ -61,7 +61,7 @@ CLASS:
   deprecationStatus: null
   importableFqName: GenericPredicate
 
-SAM METHOD:
+FUNCTIONAL INTERFACE FUNCTION:
   KaNamedFunctionSymbol:
   annotations: []
   callableId: /GenericPredicate.test

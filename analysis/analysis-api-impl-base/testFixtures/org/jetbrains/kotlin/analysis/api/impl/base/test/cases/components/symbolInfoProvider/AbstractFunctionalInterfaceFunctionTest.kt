@@ -16,21 +16,21 @@ import org.jetbrains.kotlin.psi.KtTypeReference
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.assertions
 
-abstract class AbstractSamMethodTest : AbstractAnalysisApiBasedTest() {
+abstract class AbstractFunctionalInterfaceFunctionTest : AbstractAnalysisApiBasedTest() {
     override fun doTestByMainFile(mainFile: KtFile, mainModule: KtTestModule, testServices: TestServices) {
         val typeReference = testServices.expressionMarkerProvider.getBottommostElementOfTypeAtCaret<KtTypeReference>(mainFile)
         val actual = executeOnPooledThreadInReadAction {
             val symbolRenderer = KaDebugRenderer(renderExtra = true, renderTypeByProperties = true, renderExpandedTypes = true)
             copyAwareAnalyzeForTest(typeReference) { contextTypeReference ->
                 val classSymbol = contextTypeReference.type.symbol ?: error("Cannot resolve type reference to a class-like symbol")
-                val samMethod = classSymbol.samMethod
+                val functionalInterfaceFunction = classSymbol.functionalInterfaceFunction
 
                 buildString {
                     appendLine("CLASS:")
                     appendLine("  ${symbolRenderer.render(this@copyAwareAnalyzeForTest, classSymbol)}")
                     appendLine()
-                    appendLine("SAM METHOD:")
-                    appendLine("  ${samMethod?.let { symbolRenderer.render(this@copyAwareAnalyzeForTest, it) }}")
+                    appendLine("FUNCTIONAL INTERFACE FUNCTION:")
+                    appendLine("  ${functionalInterfaceFunction?.let { symbolRenderer.render(this@copyAwareAnalyzeForTest, it) }}")
                 }
             }
         }

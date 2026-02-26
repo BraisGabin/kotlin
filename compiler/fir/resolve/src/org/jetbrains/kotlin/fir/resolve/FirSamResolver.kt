@@ -140,10 +140,10 @@ class FirSamResolver(
     }
 
     /**
-     * Returns the single abstract method (SAM) of a functional interface, or `null` if [firClassOrTypeAlias]
+     * Returns the single abstract function of a functional interface, or `null` if [firClassOrTypeAlias]
      * is not a functional interface.
      */
-    fun getSamMethod(firClassOrTypeAlias: FirClassLikeDeclaration): FirNamedFunctionSymbol? {
+    fun getSamFunction(firClassOrTypeAlias: FirClassLikeDeclaration): FirNamedFunctionSymbol? {
         val firRegularClass = when (firClassOrTypeAlias) {
             is FirRegularClass -> firClassOrTypeAlias
             is FirTypeAlias -> firClassOrTypeAlias.symbol.resolvedExpandedTypeRef.coneTypeSafe<ConeClassLikeType>()

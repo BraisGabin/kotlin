@@ -42,5 +42,5 @@ CLASS:
   deprecationStatus: null
   importableFqName: RegularInterface
 
-SAM METHOD:
+FUNCTIONAL INTERFACE FUNCTION:
   null

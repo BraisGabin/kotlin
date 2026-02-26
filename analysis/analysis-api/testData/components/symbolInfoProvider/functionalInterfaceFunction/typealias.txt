@@ -1,7 +1,7 @@
 CLASS:
   KaNamedClassSymbol:
   annotations: []
-  classId: JavaRunnable
+  classId: IntPredicate
   classKind: INTERFACE
   companionObject: null
   compilerVisibility: Public
@@ -15,8 +15,8 @@ CLASS:
   isInner: false
   location: TOP_LEVEL
   modality: ABSTRACT
-  name: JavaRunnable
-  origin: JAVA_SOURCE
+  name: IntPredicate
+  origin: SOURCE
   superTypes: [
     KaUsualClassType:
       abbreviation: null
@@ -36,21 +36,21 @@ CLASS:
   ]
   typeParameters: []
   visibility: PUBLIC
-  getContainingFileSymbol: null
+  getContainingFileSymbol: KaFileSymbol(typealias.kt)
   getContainingModule: KaSourceModule "Sources of main"
   annotationApplicableTargets: null
   deprecationStatus: null
-  importableFqName: JavaRunnable
+  importableFqName: IntPredicate
 
-SAM METHOD:
+FUNCTIONAL INTERFACE FUNCTION:
   KaNamedFunctionSymbol:
   annotations: []
-  callableId: /JavaRunnable.run
+  callableId: /IntPredicate.accept
   compilerVisibility: Public
   contextParameters: []
   contextReceivers: []
   contractEffects: []
-  hasStableParameterNames: false
+  hasStableParameterNames: true
   isActual: false
   isBuiltinFunctionInvoke: false
   isExpect: false
@@ -65,44 +65,89 @@ SAM METHOD:
   isTailRec: false
   location: CLASS
   modality: ABSTRACT
-  name: run
-  origin: JAVA_SOURCE
+  name: accept
+  origin: SOURCE
   receiverParameter: null
   returnType: KaUsualClassType:
     abbreviation: null
     annotations: []
-    classId: kotlin/Unit
+    classId: kotlin/Boolean
     qualifiers: [
       KaResolvedClassTypeQualifier:
-        name: Unit
-        symbol: KaNamedClassSymbol(kotlin/Unit)
+        name: Boolean
+        symbol: KaNamedClassSymbol(kotlin/Boolean)
         typeArguments: []
     ]
-    symbol: KaNamedClassSymbol(kotlin/Unit)
+    symbol: KaNamedClassSymbol(kotlin/Boolean)
     typeArguments: []
     isMarkedNullable: false
     isNullable: false
     hasFlexibleNullability: false
   typeParameters: []
-  valueParameters: []
+  valueParameters: [
+    KaValueParameterSymbol:
+      annotations: []
+      callableId: null
+      compilerVisibility: Public
+      contextReceivers: []
+      generatedPrimaryConstructorProperty: null
+      hasDeclaredDefaultValue: false
+      hasDefaultValue: false
+      hasSynthesizedName: false
+      isActual: false
+      isCrossinline: false
+      isExpect: false
+      isExtension: false
+      isExternal: false
+      isImplicitLambdaParameter: false
+      isNoinline: false
+      isVal: true
+      isVararg: false
+      location: LOCAL
+      modality: FINAL
+      name: i
+      origin: SOURCE
+      receiverParameter: null
+      returnType: KaUsualClassType:
+        abbreviation: null
+        annotations: []
+        classId: kotlin/Int
+        qualifiers: [
+          KaResolvedClassTypeQualifier:
+            name: Int
+            symbol: KaNamedClassSymbol(kotlin/Int)
+            typeArguments: []
+        ]
+        symbol: KaNamedClassSymbol(kotlin/Int)
+        typeArguments: []
+        isMarkedNullable: false
+        isNullable: false
+        hasFlexibleNullability: false
+      visibility: PUBLIC
+      getContainingFileSymbol: KaFileSymbol(typealias.kt)
+      getContainingJvmClassName: IntPredicate
+      getContainingModule: KaSourceModule "Sources of main"
+      deprecationStatus: null
+      importableFqName: null
+  ]
   visibility: PUBLIC
   getDispatchReceiver(): KaUsualClassType:
     abbreviation: null
     annotations: []
-    classId: JavaRunnable
+    classId: IntPredicate
     qualifiers: [
       KaResolvedClassTypeQualifier:
-        name: JavaRunnable
-        symbol: KaNamedClassSymbol(JavaRunnable)
+        name: IntPredicate
+        symbol: KaNamedClassSymbol(IntPredicate)
         typeArguments: []
     ]
-    symbol: KaNamedClassSymbol(JavaRunnable)
+    symbol: KaNamedClassSymbol(IntPredicate)
     typeArguments: []
     isMarkedNullable: false
     isNullable: false
     hasFlexibleNullability: false
-  getContainingFileSymbol: null
-  getContainingJvmClassName: JavaRunnable
+  getContainingFileSymbol: KaFileSymbol(typealias.kt)
+  getContainingJvmClassName: IntPredicate
   canBeOperator: false
   getContainingModule: KaSourceModule "Sources of main"
   deprecationStatus: null
