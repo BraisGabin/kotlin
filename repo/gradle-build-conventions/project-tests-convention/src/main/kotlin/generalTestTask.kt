@@ -90,7 +90,9 @@ abstract class GeneralTestArgumentProvider @Inject constructor() : CommandLineAr
     @get:InputFile
     @get:Optional
     @get:PathSensitive(PathSensitivity.NONE)
-    abstract val excludesFile: RegularFileProperty
+    val excludesFile: Provider<File> = providers.environmentVariable("TEAMCITY_PARALLEL_TESTS_ARTIFACT_PATH")
+        .map { File(it) }
+        .filter { it.exists() }
 
     @get:Internal
     val tempDir: Provider<String> =
@@ -100,7 +102,7 @@ abstract class GeneralTestArgumentProvider @Inject constructor() : CommandLineAr
     val prefix = projectName.zip(taskName) { projectName, taskName -> "${projectName}Project_${taskName}_" }
 
     override fun asArguments(): Iterable<String?> = listOfNotNull(
-        excludesFile.orNull?.let { "-Dteamcity.build.parallelTests.excludesFile=${excludesFile.get().asFile.path}" },
+        excludesFile.orNull?.let { "-Dteamcity.build.parallelTests.excludesFile=${excludesFile.get().path}" },
         tempDir.orNull?.let { "-Djava.io.tmpdir=" + Files.createTempDirectory(File(it).toPath(), prefix.get()).toString() },
     )
 }
@@ -268,10 +270,6 @@ internal fun Project.createGeneralTestTask(
         val testArgumentProvider = objects.newInstance<GeneralTestArgumentProvider>().also {
             it.projectName.set(project.name)
             it.taskName.set(name)
-            it.excludesFile.fileProvider(
-                project.providers.environmentVariable("TEAMCITY_PARALLEL_TESTS_ARTIFACT_PATH")
-                    .map { File(it) }
-                    .filter { it.exists() })
         }
         jvmArgumentProviders.add(testArgumentProvider)
 
@@ -279,7 +277,7 @@ internal fun Project.createGeneralTestTask(
 
         doFirst {
             if (testArgumentProvider.excludesFile.isPresent) {
-                cleanupInvalidExcludePatternsForTCParallelTests(testArgumentProvider.excludesFile.get().asFile.path) // Workaround for TW-92736
+                cleanupInvalidExcludePatternsForTCParallelTests(testArgumentProvider.excludesFile.get().path) // Workaround for TW-92736
             }
         }
 
