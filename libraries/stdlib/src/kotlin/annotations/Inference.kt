@@ -9,6 +9,8 @@ import kotlin.annotation.AnnotationTarget.*
 import kotlin.experimental.ExperimentalTypeInference
 
 /**
+ * Note: this annotation is deprecated and must not be used anymore. Builder inference is enabled automatically for builder calls if needed.
+ *
  * Allows to infer generic type arguments of a function from the calls in the annotated function parameter of that function.
  *
  * When this annotation is placed on a generic function parameter of a function,
@@ -27,8 +29,6 @@ import kotlin.experimental.ExperimentalTypeInference
  * ```
  * Here the type argument of the resulting sequence is inferred to `String` from
  * the argument of the [SequenceScope.yield] function, that is called inside the lambda passed to [sequence].
- *
- * Note: this annotation is experimental, see [ExperimentalTypeInference] on how to opt-in for it.
  */
 @Target(VALUE_PARAMETER, FUNCTION, PROPERTY)
 @Retention(AnnotationRetention.BINARY)
