@@ -316,10 +316,17 @@ class Fir2IrCallableDeclarationsGenerator(private val c: Fir2IrComponents) : Fir
                                 } else if (property.isConst) {
                                     val evaluatedInitializer = property.evaluatedInitializer?.unwrapOr<FirLiteralExpression> {}
                                     // The evaluated initializer can be missing in case of an error. It will be reported as diagnostic.
-                                    if (evaluatedInitializer != null) {
-                                        val irConst = evaluatedInitializer.toIrConst(evaluatedInitializer.resolvedType.toIrType())
-                                        field.initializer = factory.createExpressionBody(irConst)
+                                    val expression = if (evaluatedInitializer != null) {
+                                        evaluatedInitializer.toIrConst(evaluatedInitializer.resolvedType.toIrType())
+                                    } else {
+                                        IrErrorExpressionImpl(
+                                            startOffset = field.initializer?.startOffset ?: UNDEFINED_OFFSET,
+                                            endOffset = field.initializer?.endOffset ?: UNDEFINED_OFFSET,
+                                            type = typeToUse,
+                                            "Initializer for const property ${property.name} was not evaluated"
+                                        )
                                     }
+                                    field.initializer = factory.createExpressionBody(expression)
                                 }
                             }
                         }
@@ -772,9 +779,7 @@ class Fir2IrCallableDeclarationsGenerator(private val c: Fir2IrComponents) : Fir
                 if (!skipDefaultParameter && defaultValue != null) {
                     this.defaultValue = when {
                         forcedDefaultValueConversion && defaultValue !is FirExpressionStub -> {
-                            val valueToConvert = valueParameter.evaluatedInitializer?.unwrapOr<FirExpression> {
-                                error("Unexpected evaluated initializer for default annotation constructor parameter: ${valueParameter.render()}")
-                            } ?: defaultValue
+                            val valueToConvert = valueParameter.evaluatedInitializer?.unwrapOr<FirExpression> {} ?: defaultValue
                             valueToConvert.asCompileTimeIrInitializerForAnnotationParameter()
                         }
                         useStubForDefaultValueStub || defaultValue !is FirExpressionStub ->
