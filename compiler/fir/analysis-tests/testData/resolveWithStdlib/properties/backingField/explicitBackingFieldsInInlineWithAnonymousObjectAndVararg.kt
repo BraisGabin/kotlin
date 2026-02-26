@@ -3,7 +3,7 @@
 val a: Any
     field: Int = 1
 
-inline fun outer(vararg x: Int = intArrayOf(<!UNRESOLVED_REFERENCE!>a3<!>.inc())) {
+inline fun outer(vararg x: Int = intArrayOf(a.<!UNRESOLVED_REFERENCE!>inc<!>())) {
     val local = object {
         val b: Any
             field: Int = 1
