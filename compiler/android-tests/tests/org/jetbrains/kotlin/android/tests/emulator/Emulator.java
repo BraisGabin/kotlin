@@ -126,7 +126,7 @@ public class Emulator {
         commandLine.addParameter("-no-metrics");
         commandLine.addParameter("-gpu");
         commandLine.addParameter("off");
-        //commandLine.addParameter("-no-accel");
+        commandLine.addParameter("-no-accel");
         return commandLine;
     }
 
