@@ -162,6 +162,7 @@ private fun compileWholeProgramModeToWasmIr(
             irModuleFragment = irModuleFragment,
             trackedTypes = null,
             trackedReferences = null,
+            trackedModules = null,
             enableMultimoduleExports = false,
         )
     }
@@ -203,10 +204,11 @@ private fun compileSingleModuleToWasmIr(
     val dependencyImports = mutableSetOf<WasmModuleDependencyImport>()
     val referencedDeclarations = ModuleReferencedDeclarations()
     val referencedTypes = typeTracking.ifTrue { ModuleReferencedTypes() }
+    val referencedModules = mutableSetOf<String>()
     fun referenceFunction(functionSymbol: IrFunctionSymbol) {
         val signature = signatureRetriever.declarationSignature(functionSymbol.owner)!!
         referencedDeclarations.functions.add(signature)
-        referencedTypes?.addFunctionTypeToReferenced(functionSymbol, signatureRetriever)
+        referencedTypes?.addFunctionTypeToReferenced(functionSymbol, referencedModules, signatureRetriever)
     }
 
     val compiledModuleFragments = mutableListOf<WasmCompiledFileFragment>()
@@ -215,6 +217,7 @@ private fun compileSingleModuleToWasmIr(
         irModuleFragment = mainModuleFragment,
         trackedReferences = referencedDeclarations,
         trackedTypes = referencedTypes,
+        trackedModules = referencedModules,
         enableMultimoduleExports = true,
     )
     compiledModuleFragments.add(mainModuleFileFragment)
@@ -233,7 +236,7 @@ private fun compileSingleModuleToWasmIr(
     }
 
     val dependencyResolutionMap = parseDependencyResolutionMap(configuration)
-    val dependencyModules = loweredIr.loweredIr.filterNot { it == mainModuleFragment }
+    val dependencyModules = loweredIr.loweredIr.filter { it != mainModuleFragment && it.name.asString() in referencedModules }
     dependencyModules.mapTo(compiledModuleFragments) { irFragment ->
         val dependencyFragment =
             codeGenerator.generateDependencyAsSingleFileFragment(irFragment)

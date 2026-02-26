@@ -75,6 +75,7 @@ class WasmModuleFragmentGenerator(
         irModuleFragment: IrModuleFragment,
         trackedTypes: ModuleReferencedTypes?,
         trackedReferences: ModuleReferencedDeclarations?,
+        trackedModules: MutableSet<String>?,
         enableMultimoduleExports: Boolean,
     ): WasmCompiledCodeFileFragment {
 
@@ -88,6 +89,7 @@ class WasmModuleFragmentGenerator(
             WasmTrackedTypeCodegenContext(
                 wasmFileFragment = definedTypes,
                 moduleReferencedTypes = trackedTypes,
+                referencedModules = trackedModules ?: mutableSetOf(),
                 idSignatureRetriever = idSignatureRetriever
             )
         }
@@ -102,6 +104,7 @@ class WasmModuleFragmentGenerator(
             WasmDeclarationCodegenContextWithTrackedReferences(
                 moduleReferencedDeclarations = trackedReferences,
                 moduleReferencedTypes = trackedTypes,
+                referencedModules = trackedModules ?: mutableSetOf(),
                 wasmFileFragment = definedDeclarations,
                 idSignatureRetriever = idSignatureRetriever
             )
