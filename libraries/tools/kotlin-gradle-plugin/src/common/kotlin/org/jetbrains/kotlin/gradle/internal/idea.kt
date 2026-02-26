@@ -20,12 +20,6 @@ internal val Project.isInIdeaSync
     get() = providers.isInIdeaSync()
 
 /**
- * Returns `true` when Gradle build is invoked in any sort of IDEA environment: sync or task execution.
- */
-internal val Project.isInIdeaEnvironment
-    get() = providers.isInIdeaEnvironment()
-
-/**
  * Returns `true` only when Gradle build is invoked during IDEA project sync.
  */
 internal fun ProviderFactory.isInIdeaSync(): Provider<Boolean> =

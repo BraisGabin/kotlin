@@ -59,7 +59,7 @@ private const val DESCRIPTION =
             "This task always runs before compileKotlin* or similar tasks."
 
 internal fun Project.locateOrRegisterCheckKotlinGradlePluginErrorsTask(
-    diagnosticsContext: ToolingDiagnosticsContext = toolingDiagnosticsContext,
+    diagnosticsContext: ToolingDiagnosticsContext,
 ): TaskProvider<CheckKotlinGradlePluginConfigurationErrors> {
     val partiallyResolvedDependenciesCheckerProjectsEvaluated = if (project.isPartiallyResolvedDependenciesCheckerEnabled) {
         locateOrRegisterPartiallyResolvedDependenciesCheckerTask()

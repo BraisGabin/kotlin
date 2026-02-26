@@ -107,12 +107,6 @@ private fun showColoredDiagnostics(consoleOutput: ConsoleOutput, isAttachedToTer
 }
 
 /**
- * Returns `true` when this project's Gradle invocation is attached to an interactive terminal.
- */
-internal val Project.isAttachedToTerminal
-    get() = providers.isAttachedToTerminal()
-
-/**
  * Returns `true` when current Gradle build is attached to a terminal.
  */
 internal fun ProviderFactory.isAttachedToTerminal(): Provider<Boolean> =
