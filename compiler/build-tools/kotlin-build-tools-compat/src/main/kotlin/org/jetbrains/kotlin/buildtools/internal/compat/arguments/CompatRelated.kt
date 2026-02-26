@@ -5,36 +5,28 @@
 
 package org.jetbrains.kotlin.buildtools.internal.compat.arguments
 
-import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
-
-internal fun <T> K2JVMCompilerArguments.applyProfileCompilerCommand(profileCompilerCommand: T?) {
-    require(profileCompilerCommand is String?) { "X_PROFILE must be a string, but was $profileCompilerCommand" }
-
-    this.profileCompilerCommand = profileCompilerCommand
-}
+import org.jetbrains.kotlin.buildtools.api.arguments.JvmCompilerArguments
+import java.nio.file.Path
+import kotlin.io.path.Path
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T> applyProfileCompilerCommand(
-    currentValue: Any?,
-    compilerArgs: K2JVMCompilerArguments,
-): T {
-    require(currentValue is String?) { "X_PROFILE home must be a string, but was $currentValue" }
+internal fun <V, T> getAndMap(value: T, key: JvmCompilerArguments.JvmCompilerArgument<V>): V? =
+    when (key) {
+        JvmCompilerArguments.JDK_HOME -> {
+            val pathValue = value as Path?
+            return pathValue?.absolutePathStringOrThrow() as V
+        }
 
-    return compilerArgs.profileCompilerCommand as T
-}
-
-internal fun <T> K2JVMCompilerArguments.applyJdkHome(jdkHome: T?) {
-    require(jdkHome is String?) { "JDK home must be a string, but was $jdkHome" }
-
-    this.jdkHome = jdkHome
-}
+        else -> value as V?
+    }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <T> applyJdkHome(
-    currentValue: Any?,
-    compilerArgs: K2JVMCompilerArguments,
-): T {
-    require(currentValue is String?) { "JDK home must be a string, but was $currentValue" }
+internal fun <V, T> setAndMap(value: T, key: JvmCompilerArguments.JvmCompilerArgument<V>): T? =
+    when (key) {
+        JvmCompilerArguments.JDK_HOME -> {
+            val stringValue = value as String?
+            return stringValue?.let { Path(it) } as T
+        }
 
-    return compilerArgs.jdkHome as T
-}
+        else -> value as T?
+    }

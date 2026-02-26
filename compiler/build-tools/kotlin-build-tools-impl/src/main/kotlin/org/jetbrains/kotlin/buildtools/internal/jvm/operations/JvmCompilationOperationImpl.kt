@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.build.report.reportPerformanceData
 import org.jetbrains.kotlin.buildtools.api.*
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmIncrementalCompilationConfiguration
+import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
@@ -60,19 +61,20 @@ import java.io.Serializable
 import java.net.URLClassLoader
 import java.nio.file.Path
 import java.rmi.RemoteException
+import kotlin.reflect.full.functions
 
 internal class JvmCompilationOperationImpl private constructor(
     override val options: Options = Options(JvmCompilationOperation::class),
     override val sources: List<Path>,
     override val destinationDirectory: Path,
-    override val compilerArguments: JvmCompilerArgumentsImpl = JvmCompilerArgumentsImpl(),
+    override val compilerArguments: JvmCompilerArgumentsImpl = JvmCompilerArgumentsImpl(JvmPlatformToolchain::class.functions.none { it.name == "discoverScriptExtensionsOperationBuilder" }), //TODO(KT-84598): Expose API Version via Public Property
     private val buildIdToSessionFlagFile: MutableMap<ProjectId, File>,
 ) : CancellableBuildOperationImpl<CompilationResult>(), JvmCompilationOperation, JvmCompilationOperation.Builder,
     DeepCopyable<JvmCompilationOperationImpl> {
     constructor(
         sources: List<Path>,
         destinationDirectory: Path,
-        compilerArguments: JvmCompilerArgumentsImpl = JvmCompilerArgumentsImpl(),
+        compilerArguments: JvmCompilerArgumentsImpl = JvmCompilerArgumentsImpl(JvmPlatformToolchain::class.functions.none { it.name == "discoverScriptExtensionsOperationBuilder" }), //TODO(KT-84598): Expose API Version via Public Property
         buildIdToSessionFlagFile: MutableMap<ProjectId, File>,
     ) : this(
         options = Options(JvmCompilationOperation::class),
@@ -526,7 +528,8 @@ internal class JvmCompilationOperationImpl private constructor(
 
         val GENERATE_COMPILER_REF_INDEX: Option<Boolean> = Option("GENERATE_COMPILER_REF_INDEX", false)
 
-        val COMPILER_MESSAGE_RENDERER: Option<CompilerMessageRenderer> = Option("COMPILER_MESSAGE_RENDERER", default = DefaultCompilerMessageRenderer)
+        val COMPILER_MESSAGE_RENDERER: Option<CompilerMessageRenderer> =
+            Option("COMPILER_MESSAGE_RENDERER", default = DefaultCompilerMessageRenderer)
     }
 }
 

@@ -7,6 +7,7 @@ package org.jetbrains.kotlin.buildtools.options.generator
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import org.jetbrains.kotlin.arguments.description.CompilerArgumentsLevelNames
 import org.jetbrains.kotlin.arguments.dsl.base.KotlinCompilerArgumentsLevel
 import org.jetbrains.kotlin.arguments.dsl.base.KotlinReleaseVersion
 import org.jetbrains.kotlin.arguments.dsl.types.IntType
@@ -41,6 +42,8 @@ internal class BtaImplGenerator(
                     .addMember("%T::class", ANNOTATION_EXPERIMENTAL).build()
             )
             classType(implClassName) {
+                val isJvmCompilerArguments = level.name == CompilerArgumentsLevelNames.jvmCompilerArguments
+
                 addModifiers(KModifier.INTERNAL)
                 if (!level.isLeaf()) {
                     addModifiers(KModifier.ABSTRACT)
@@ -69,7 +72,7 @@ internal class BtaImplGenerator(
                 val argumentTypeName = ClassName(API_ARGUMENTS_PACKAGE, apiClassName, argumentTypeNameString)
                 val argumentImplTypeName = ClassName(targetPackage, implClassName, argumentTypeNameString)
 
-                generateGetPutFunctions(argumentTypeName, argumentImplTypeName)
+                generateGetPutFunctions(argumentTypeName, argumentImplTypeName, isJvmCompilerArguments)
 
                 addType(TypeSpec.companionObjectBuilder().apply {
                     property(
@@ -96,10 +99,17 @@ internal class BtaImplGenerator(
                     function("deepCopy") {
                         addModifiers(KModifier.OVERRIDE)
                         returns(ClassName(targetPackage, implClassName))
-                        addStatement(
-                            "return %T().also { newArgs -> newArgs.applyArgumentStrings(toArgumentStrings()) }",
-                            ClassName(targetPackage, implClassName)
-                        )
+                        if (isJvmCompilerArguments) {
+                            addStatement(
+                                "return %T(requiresForwardCompatibility).also { newArgs -> newArgs.applyArgumentStrings(toArgumentStrings()) }",
+                                ClassName(targetPackage, implClassName)
+                            )
+                        } else {
+                            addStatement(
+                                "return %T().also { newArgs -> newArgs.applyArgumentStrings(toArgumentStrings()) }",
+                                ClassName(targetPackage, implClassName)
+                            )
+                        }
                     }
                     function("build") {
                         addModifiers(KModifier.OVERRIDE)
@@ -118,6 +128,16 @@ internal class BtaImplGenerator(
                     )
 
                     primaryConstructor(FunSpec.constructorBuilder().apply {
+                        if (isJvmCompilerArguments) {
+                            addParameter(
+                                ParameterSpec.builder("requiresForwardCompatibility", BOOLEAN)
+                                    .build()
+                            )
+                            addProperty(
+                                PropertySpec.builder("requiresForwardCompatibility", BOOLEAN).initializer("requiresForwardCompatibility")
+                                    .build()
+                            )
+                        }
                         addStatement("applyCompilerArguments(%T())", level.getCompilerArgumentsClassName())
                     }.build())
                 }
@@ -201,22 +221,6 @@ internal class BtaImplGenerator(
                         wasIntroducedRecently,
                         applyCompilerArgumentsFun,
                         argumentTypeParameter
-                    )
-                }
-
-                is BtaCompilerArgument.SSoTCompilerArgumentCompat -> {
-                    generateCompatArgumentsPropagators(
-                        implClassName,
-                        name,
-                        argumentTypeParameter,
-                        argument,
-                        wasRemoved,
-                        argument.effectiveCompilerName,
-                        toCompilerConverterFun,
-                        wasIntroducedRecently,
-                        applyCompilerArgumentsFun,
-                        argumentTypeParameter,
-                        argument.applierSimpleName
                     )
                 }
 
@@ -308,57 +312,6 @@ internal class BtaImplGenerator(
             member, type, argument, effectiveCompilerName, wasRemoved, argumentTypeParameter
         )
         applyCompilerArgumentsFun.addSafeMethodAccessStatement(compilerToBtaStatement, failOnNoSuchMethod = false)
-    }
-
-    /**
-     * Generates code for compat arguments with ClassCastException handling
-     */
-    private fun generateCompatArgumentsPropagators(
-        implClassName: String,
-        name: String,
-        type: TypeName,
-        argument: BtaCompilerArgument.SSoTCompilerArgumentCompat,
-        wasRemoved: Boolean,
-        effectiveCompilerName: String,
-        toCompilerConverterFun: FunSpec.Builder,
-        wasIntroducedRecently: Boolean,
-        applyCompilerArgumentsFun: FunSpec.Builder,
-        argumentTypeParameter: TypeName,
-        applierSimpleName: String,
-    ) {
-        val member = MemberName(ClassName(targetPackage, implClassName, "Companion"), name)
-        val applier = MemberName(targetPackage, applierSimpleName)
-
-        // BTA → Compiler conversion with ClassCastException handling
-        CodeBlock.builder().apply {
-            add("if (%M in this) { ", member)
-            val valueToAssign = buildBtaToCompilerValueTransform(member, type, argument)
-            val assignment = buildCompilerAssignment(effectiveCompilerName, wasRemoved, valueToAssign)
-            add("try { %L } catch(e: ClassCastException) { arguments.%M(get(%M)) }", assignment, applier, member)
-            add("}")
-        }.build().also { setStatement ->
-            toCompilerConverterFun.addSafeSetStatement(
-                wasIntroducedRecently,
-                wasRemoved,
-                name,
-                argument,
-                setStatement,
-                generateCompatLayer,
-            )
-        }
-
-        // Compiler → BTA conversion with ClassCastException handling
-        val compilerToBtaStatement = buildCompilerToBtaValueTransform(
-            member, type, argument, effectiveCompilerName, wasRemoved, argumentTypeParameter
-        )
-        val wrappedStatement = CodeBlock.of(
-            "try { %L } catch (e: ClassCastException) { %M(this[%M], arguments) }",
-            compilerToBtaStatement,
-            applier,
-            member
-        )
-
-        applyCompilerArgumentsFun.addSafeMethodAccessStatement(wrappedStatement, failOnNoSuchMethod = false)
     }
 
     /**
@@ -470,7 +423,7 @@ internal class BtaImplGenerator(
         }
     }.build()
 
-    fun TypeSpec.Builder.generateGetPutFunctions(parameter: ClassName, implParameter: ClassName) {
+    fun TypeSpec.Builder.generateGetPutFunctions(parameter: ClassName, implParameter: ClassName, isJvmCompilerArguments: Boolean) {
         val mapProperty = property(
             "optionsMap",
             ClassName("kotlin.collections", "MutableMap").parameterizedBy(typeNameOf<String>(), ANY.copy(nullable = true))
@@ -491,6 +444,22 @@ internal class BtaImplGenerator(
             addTypeVariable(typeParameter)
             addParameter("key", parameter.parameterizedBy(typeParameter))
             addStatement($$"check(key.id in optionsMap) { \"Argument ${key.id} is not set and has no default value\" }")
+
+            if (isJvmCompilerArguments) {
+                addCode(
+                    CodeBlock.builder()
+                        .beginControlFlow("if(requiresForwardCompatibility)")
+                        .addStatement(
+                            "return %M(%N[key.id], key) as %T",
+                            MemberName(targetPackage, "getAndMap", isExtension = false),
+                            mapProperty,
+                            typeParameter
+                        )
+                        .endControlFlow()
+                        .build()
+                )
+            }
+
             addStatement("return %N[key.id] as %T", mapProperty, typeParameter)
         }
         function("set") {
@@ -530,7 +499,22 @@ internal class BtaImplGenerator(
                     .endControlFlow()
                     .build()
             )
-            addStatement("%N[key.id] = %N", mapProperty, "value")
+
+            if (isJvmCompilerArguments) {
+                addCode(
+                    CodeBlock.builder()
+                        .addStatement(
+                            "%N[key.id] = if (requiresForwardCompatibility) { %M(%N, key) } else { %N }",
+                            mapProperty,
+                            MemberName(targetPackage, "setAndMap", isExtension = false),
+                            "value",
+                            "value"
+                        )
+                        .build()
+                )
+            } else {
+                addStatement("%N[key.id] = %N", mapProperty, "value")
+            }
         }
 
         function("contains") {

@@ -45,14 +45,14 @@ public class KotlinToolchainsV1Adapter(
                 sources: List<Path>,
                 destinationDirectory: Path,
             ): JvmCompilationOperation {
-                return JvmCompilationOperationV1Adapter(compilationService, sources, destinationDirectory, JvmCompilerArgumentsImpl())
+                return JvmCompilationOperationV1Adapter(compilationService, sources, destinationDirectory, JvmCompilerArgumentsImpl(false))
             }
 
             override fun jvmCompilationOperationBuilder(
                 sources: List<Path>,
                 destinationDirectory: Path,
             ): JvmCompilationOperation.Builder {
-                return JvmCompilationOperationV1Adapter(compilationService, sources, destinationDirectory, JvmCompilerArgumentsImpl())
+                return JvmCompilationOperationV1Adapter(compilationService, sources, destinationDirectory, JvmCompilerArgumentsImpl(false))
             }
 
             @Deprecated(
@@ -225,7 +225,7 @@ private class JvmCompilationOperationV1Adapter private constructor(
             compilationService,
             sources,
             destinationDirectory,
-            JvmCompilerArgumentsImpl().also { it.applyArgumentStrings(compilerArguments.toArgumentStrings()) })
+            JvmCompilerArgumentsImpl(false).also { it.applyArgumentStrings(compilerArguments.toArgumentStrings()) })
     }
 
     override fun snapshotBasedIcConfigurationBuilder(
