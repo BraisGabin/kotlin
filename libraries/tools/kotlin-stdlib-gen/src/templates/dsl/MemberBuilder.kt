@@ -46,6 +46,7 @@ class MemberBuilder(
     var doc: String? = null; private set
 
     var samples = listOf<String>()
+    var see = listOf<String>()
 
     val sequenceClassification = mutableListOf<SequenceClass>()
     var deprecate: Deprecation? = null; private set
@@ -143,6 +144,10 @@ class MemberBuilder(
 
     fun sample(vararg sampleRef: String) {
         samples = sampleRef.asList()
+    }
+
+    fun see(vararg seeAlsoSymbols: String) {
+        see = seeAlsoSymbols.asList()
     }
 
     fun body(valueBuilder: () -> String) {
@@ -319,6 +324,10 @@ class MemberBuilder(
             if (throwsExceptions.any()) {
                 builder.append(" * \n")
                 throwsExceptions.forEach { (type, reason) -> builder.append(" * @throws $type $reason\n") }
+            }
+            if (see.any()) {
+                builder.append(" * \n")
+                see.forEach { builder.append(" * @see $it\n") }
             }
             if (samples.any()) {
                 builder.append(" * \n")
