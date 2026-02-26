@@ -290,7 +290,7 @@ internal val IrConstructor.exportedVisibility: ExportedVisibility
 
 internal fun IrClass.hasNotExportedAbstractMembers(): Boolean {
     /**
-     * We process interfaces only since it's impossible to cover the following case:
+     * We only process interfaces because it's impossible to cover the following case:
      * an abstract class that extends another abstract class which contain an ignored abstract member
      * but the current inheritor overrides them all and converting them into non-abstract members
      * Example of code:
