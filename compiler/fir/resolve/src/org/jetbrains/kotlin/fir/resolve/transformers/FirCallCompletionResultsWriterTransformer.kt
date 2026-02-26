@@ -478,6 +478,10 @@ class FirCallCompletionResultsWriterTransformer(
      *
      * See K1 counterpart at [org.jetbrains.kotlin.resolve.calls.tower.NewAbstractResolvedCall.getSubstitutorWithoutFlexibleTypes].
      *
+     * TODO: consider dropping this function once [LanguageFeature.DontMakeExplicitNullableJavaTypeArgumentsFlexible] is removed.
+     * As a variant, we could consider applying similar transformation inside CreateFreshTypeVariableSubstitutorStage
+     * together with changing constructor's return type.
+     *
      * @return `null` for all other cases where [finalSubstitutor] should be used
      */
     private fun Candidate.prepareCustomReturnTypeSubstitutorForFunctionCall(): ConeSubstitutor? {
