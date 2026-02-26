@@ -26,7 +26,7 @@ internal val KotlinToolingDiagnosticsSetupAction = KotlinProjectSetupAction {
     launchKotlinGradleProjectCheckers()
 
     // Setup a task that will abort the build if errors will be reported. This task should be the first in the taskgraph
-    project.locateOrRegisterCheckKotlinGradlePluginErrorsTask()
+    project.locateOrRegisterCheckKotlinGradlePluginErrorsTask(diagnosticsContext)
 
     // Schedule diagnostics rendering
     project.launch {

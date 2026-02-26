@@ -7,6 +7,7 @@
 
 package org.jetbrains.kotlin.gradle.unitTests.diagnosticsTests
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider
@@ -196,7 +197,7 @@ class DiagnosticsReportingFunctionalTest {
             emptyList(),
         )
 
-        assertFailsWith<Throwable> {
+        assertFailsWith<InvalidUserCodeException> {
             project.kotlinToolingDiagnosticsCollector.report(parameters, diagnostic)
         }
     }

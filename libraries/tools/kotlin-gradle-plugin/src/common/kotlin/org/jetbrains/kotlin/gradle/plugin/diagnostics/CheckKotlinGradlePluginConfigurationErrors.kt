@@ -58,7 +58,9 @@ private const val DESCRIPTION =
     "Checks that Kotlin Gradle Plugin hasn't reported project configuration errors, failing otherwise. " +
             "This task always runs before compileKotlin* or similar tasks."
 
-internal fun Project.locateOrRegisterCheckKotlinGradlePluginErrorsTask(): TaskProvider<CheckKotlinGradlePluginConfigurationErrors> {
+internal fun Project.locateOrRegisterCheckKotlinGradlePluginErrorsTask(
+    diagnosticsContext: ToolingDiagnosticsContext = toolingDiagnosticsContext,
+): TaskProvider<CheckKotlinGradlePluginConfigurationErrors> {
     val partiallyResolvedDependenciesCheckerProjectsEvaluated = if (project.isPartiallyResolvedDependenciesCheckerEnabled) {
         locateOrRegisterPartiallyResolvedDependenciesCheckerTask()
     } else null
@@ -85,7 +87,7 @@ internal fun Project.locateOrRegisterCheckKotlinGradlePluginErrorsTask(): TaskPr
         )
         task.usesService(kotlinToolingDiagnosticsCollectorProvider)
         task.problemsReporter.set(kotlinToolingDiagnosticsCollectorProvider.map { it.problemsReporter })
-        task.renderingOptions.set(toolingDiagnosticsContext.renderingOptions)
+        task.renderingOptions.set(diagnosticsContext.renderingOptions)
         task.description = DESCRIPTION
         task.group = LifecycleBasePlugin.VERIFICATION_GROUP
 
