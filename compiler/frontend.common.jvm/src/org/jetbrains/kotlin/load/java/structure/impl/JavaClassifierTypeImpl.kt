@@ -44,22 +44,30 @@ class JavaClassifierTypeImpl(
     override val isRaw: Boolean
         get() = resolve().isRaw
 
-    override// parameters including ones from outer class
-    val typeArguments: List<JavaType?>
-        get() {
-            val classifier = classifier as? JavaClassImpl ?: return emptyList()
-            val parameters = getTypeParameters(classifier.psi)
+    /**
+     * A list of type arguments for the type parameters of this class and its outer class(es).
+     *
+     * These type arguments are cached because in some workloads, type arguments can be heavily requested. In Analysis API mode,
+     * [createTypeSource] creates a smart pointer, which can be an expensive operation.
+     *
+     * Invalidation is not necessary because [JavaType] stores a type pointer, not the [PsiType] itself. Furthermore,
+     * [JavaClassifierTypeImpl] should already be discarded on modification, since it should be contained in caches that are already
+     * invalidated upon modification. So when type parameters are modified, a new [JavaClassifierTypeImpl] will be created.
+     */
+    override val typeArguments: List<JavaType?> by lazy(LazyThreadSafetyMode.PUBLICATION) {
+        val classifier = classifier as? JavaClassImpl ?: return@lazy emptyList()
+        val parameters = getTypeParameters(classifier.psi)
 
-            val substitutor = substitutor
+        val substitutor = substitutor
 
-            val result = ArrayList<JavaType?>(parameters.size)
-            for (typeParameter in parameters) {
-                val substitutedType = substitutor.substitute(typeParameter)
-                result.add(substitutedType?.let { JavaTypeImpl.create(createTypeSource(it)) })
-            }
-
-            return result
+        val result = ArrayList<JavaType?>(parameters.size)
+        for (typeParameter in parameters) {
+            val substitutedType = substitutor.substitute(typeParameter)
+            result.add(substitutedType?.let { JavaTypeImpl.create(createTypeSource(it)) })
         }
+
+        result
+    }
 
     private class ResolutionResult(
         val classifier: JavaClassifierImpl<*>?,
