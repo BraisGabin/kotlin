@@ -935,7 +935,7 @@ class WasmCompiledModuleFragment(
                     putAllChecked(fragment.definedRttiGlobal, definedDeclarations.globalRTTI, "globalRTTI")
                     putAllChecked(fragment.definedGcTypes, definedDeclarations.gcTypes, "gcTypes")
                     putAllChecked(fragment.definedVTableGcTypes, definedDeclarations.vTableGcTypes, "vTableGcTypes")
-                    // functionTypes are deduplicated by WASM signature structure, duplicates are expected and equivalent
+                    // functionTypes are deduplicated by Wasm signature structure, duplicates are expected and equivalent
                     definedDeclarations.functionTypes.putAll(fragment.definedFunctionTypes)
                 }
             }
