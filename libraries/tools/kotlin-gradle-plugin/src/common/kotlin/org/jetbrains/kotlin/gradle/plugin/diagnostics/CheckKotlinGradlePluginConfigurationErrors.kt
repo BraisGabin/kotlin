@@ -91,7 +91,8 @@ internal fun Project.locateOrRegisterCheckKotlinGradlePluginErrorsTask(): TaskPr
 
         task.onlyIf("errorDiagnostics are present") {
             require(it is CheckKotlinGradlePluginConfigurationErrors)
-            it.errorDiagnostics.orNull.isNotEmpty() || it.strongWarningDiagnostics.orNull.isNotEmpty()
+            (it.errorDiagnostics.isPresent && it.errorDiagnostics.get().isNotEmpty()) ||
+                    (it.strongWarningDiagnostics.isPresent && it.strongWarningDiagnostics.get().isNotEmpty())
         }
     }
 
