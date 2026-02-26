@@ -35,6 +35,9 @@ internal class ToolingDiagnosticRenderingOptions(
     val displayDiagnosticsInIdeBuildLog: Boolean,
 ) : Serializable {
     companion object {
+        @Suppress("unused")
+        private const val serialVersionUID: Long = 1L
+
         fun create(
             providerFactory: ProviderFactory,
             startParameter: StartParameter,

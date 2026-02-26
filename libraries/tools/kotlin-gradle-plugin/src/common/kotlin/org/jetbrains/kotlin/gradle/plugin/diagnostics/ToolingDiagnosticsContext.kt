@@ -6,6 +6,8 @@
 package org.jetbrains.kotlin.gradle.plugin.diagnostics
 
 import org.gradle.api.Project
+import org.jetbrains.kotlin.gradle.plugin.extraProperties
+import org.jetbrains.kotlin.gradle.utils.getOrPut
 import java.io.Serializable
 
 /**
@@ -23,6 +25,9 @@ internal data class ToolingDiagnosticsContext(
     val renderingOptions: ToolingDiagnosticRenderingOptions,
 ) : Serializable {
     companion object {
+        @Suppress("unused")
+        private const val serialVersionUID: Long = 1L
+
         /**
          * Builds a [ToolingDiagnosticsContext] from [project].
          */
@@ -36,8 +41,12 @@ internal data class ToolingDiagnosticsContext(
     }
 }
 
+private const val TOOLING_DIAGNOSTICS_CONTEXT_EXTRA_PROPERTY = "kotlin.internal.toolingDiagnosticsContext"
+
 /**
  * Returns diagnostics context derived from this [Project].
  */
 internal val Project.toolingDiagnosticsContext: ToolingDiagnosticsContext
-    get() = ToolingDiagnosticsContext.fromProject(this)
+    get() = extraProperties.getOrPut(TOOLING_DIAGNOSTICS_CONTEXT_EXTRA_PROPERTY) {
+        ToolingDiagnosticsContext.fromProject(this)
+    }

@@ -13,8 +13,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.work.DisableCachingByDefault
-import org.jetbrains.kotlin.gradle.dsl.multiplatformExtensionOrNull
-import org.jetbrains.kotlin.gradle.plugin.diagnostics.checkers.KmpPartiallyResolvedDependenciesCheckerProjectsEvaluated
 import org.jetbrains.kotlin.gradle.plugin.diagnostics.checkers.isPartiallyResolvedDependenciesCheckerEnabled
 import org.jetbrains.kotlin.gradle.plugin.diagnostics.checkers.locateOrRegisterPartiallyResolvedDependenciesCheckerTask
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompileTool
@@ -87,13 +85,13 @@ internal fun Project.locateOrRegisterCheckKotlinGradlePluginErrorsTask(): TaskPr
         )
         task.usesService(kotlinToolingDiagnosticsCollectorProvider)
         task.problemsReporter.set(kotlinToolingDiagnosticsCollectorProvider.map { it.problemsReporter })
-        task.renderingOptions.set(ToolingDiagnosticRenderingOptions.forProject(this))
+        task.renderingOptions.set(toolingDiagnosticsContext.renderingOptions)
         task.description = DESCRIPTION
         task.group = LifecycleBasePlugin.VERIFICATION_GROUP
 
         task.onlyIf("errorDiagnostics are present") {
             require(it is CheckKotlinGradlePluginConfigurationErrors)
-            !it.errorDiagnostics.orNull.isNullOrEmpty() || !it.strongWarningDiagnostics.orNull.isNullOrEmpty()
+            it.errorDiagnostics.orNull.isNotEmpty() || it.strongWarningDiagnostics.orNull.isNotEmpty()
         }
     }
 

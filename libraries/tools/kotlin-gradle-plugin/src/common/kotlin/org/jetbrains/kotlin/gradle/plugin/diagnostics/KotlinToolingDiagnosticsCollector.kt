@@ -93,9 +93,6 @@ internal abstract class KotlinToolingDiagnosticsCollector @Inject constructor(
 
         if (isTransparent || forceRender) {
             problemsReporter.reportProblemDiagnostic(diagnostic, options)
-            if (diagnostic.severity == ToolingDiagnostic.Severity.FATAL) {
-                throw diagnostic.createAnExceptionForFatalDiagnostic(options)
-            }
             return
         }
 
