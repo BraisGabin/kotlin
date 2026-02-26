@@ -1572,10 +1572,13 @@ class CallAndReferenceGenerator(
                     }
                     val argToConvert = when {
                         visitor.annotationMode && call is FirAnnotation -> call.argumentMapping.mapping[parameter.name]
-                            ?: error("No evaluated argument found for parameter `${parameter.name}` in ${call.render()}")
                         else -> argument
                     }
-                    val irExpression = convertArgument(argToConvert, parameter, substitutor)
+                    val irExpression = argToConvert?.let { convertArgument(it, parameter, substitutor) }
+                        ?: IrErrorExpressionImpl(
+                            startOffset, endOffset, type,
+                            "No evaluated argument found for parameter `${parameter.name}` in ${call.render()}"
+                        )
                     add(ArgumentInfo(parameter, irExpression, parameterIndex))
                 }
             }
