@@ -770,9 +770,6 @@ class BodyGenerator(
             return
         }
 
-        // The call ref intrinsic needs to do manual casting of the
-        // function reference, as its first argument is currentlly an
-        // erased funcref.
         if (call.symbol == wasmSymbols.callRef) {
             val resultType = call.typeArguments[0]!!
             val callRefArguments = call.arguments.drop(1)
