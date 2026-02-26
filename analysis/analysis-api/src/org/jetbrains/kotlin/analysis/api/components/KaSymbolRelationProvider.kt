@@ -112,7 +112,7 @@ public interface KaSymbolRelationProvider : KaSessionComponent {
         get() = functionalInterface
 
     /**
-     * Returns the single abstract method (SAM) of the [functional interface][functionalInterface] that this SAM constructor creates.
+     * Returns the single abstract function of the [functional interface][functionalInterface] that this SAM constructor creates.
      *
      * #### Example
      *
@@ -124,14 +124,14 @@ public interface KaSymbolRelationProvider : KaSessionComponent {
      * val p = MyPredicate { it > 0 }  // MyPredicate is a SAM constructor call
      * ```
      *
-     * For the `MyPredicate` SAM constructor symbol, [samMethod] returns the symbol for the `test` function.
+     * For the `MyPredicate` SAM constructor symbol, [functionalInterfaceFunction] returns the symbol for the `test` function.
      *
-     * @see KaClassLikeSymbol.samMethod
+     * @see KaClassLikeSymbol.functionalInterfaceFunction
      * @see functionalInterface
      */
     @KaExperimentalApi
     @KaK1Unsupported
-    public val KaSamConstructorSymbol.samMethod: KaNamedFunctionSymbol
+    public val KaSamConstructorSymbol.functionalInterfaceFunction: KaNamedFunctionSymbol
 
     /**
      * Returns the original [KaConstructorSymbol] for a [type-aliased constructor][KaSymbolOrigin.TYPEALIASED_CONSTRUCTOR], or `null`
@@ -459,7 +459,7 @@ public val KaSamConstructorSymbol.constructedClass: KaClassLikeSymbol
     get() = with(session) { constructedClass }
 
 /**
- * Returns the single abstract method (SAM) of the [functional interface][functionalInterface] that this SAM constructor creates.
+ * Returns the single abstract function of the [functional interface][functionalInterface] that this SAM constructor creates.
  *
  * #### Example
  *
@@ -471,9 +471,9 @@ public val KaSamConstructorSymbol.constructedClass: KaClassLikeSymbol
  * val p = MyPredicate { it > 0 }  // MyPredicate is a SAM constructor call
  * ```
  *
- * For the `MyPredicate` SAM constructor symbol, [samMethod] returns the symbol for the `test` function.
+ * For the `MyPredicate` SAM constructor symbol, [functionalInterfaceFunction] returns the symbol for the `test` function.
  *
- * @see KaClassLikeSymbol.samMethod
+ * @see KaClassLikeSymbol.functionalInterfaceFunction
  * @see functionalInterface
  */
 // Auto-generated bridge. DO NOT EDIT MANUALLY!
@@ -481,8 +481,8 @@ public val KaSamConstructorSymbol.constructedClass: KaClassLikeSymbol
 @KaK1Unsupported
 @KaContextParameterApi
 context(session: KaSession)
-public val KaSamConstructorSymbol.samMethod: KaNamedFunctionSymbol
-    get() = with(session) { samMethod }
+public val KaSamConstructorSymbol.functionalInterfaceFunction: KaNamedFunctionSymbol
+    get() = with(session) { functionalInterfaceFunction }
 
 /**
  * Returns the original [KaConstructorSymbol] for a [type-aliased constructor][KaSymbolOrigin.TYPEALIASED_CONSTRUCTOR], or `null`
