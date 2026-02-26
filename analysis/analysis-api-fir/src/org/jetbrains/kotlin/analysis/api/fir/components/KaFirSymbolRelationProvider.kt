@@ -385,11 +385,11 @@ internal class KaFirSymbolRelationProvider(
             }
         }
 
-    override val KaSamConstructorSymbol.samMethod: KaNamedFunctionSymbol
+    override val KaSamConstructorSymbol.functionalInterfaceFunction: KaNamedFunctionSymbol
         get() = withValidityAssertion {
-            functionalInterface.samMethod
-                ?: errorWithAttachment("SAM constructor should have a corresponding SAM method in its functional interface") {
-                    withSymbolAttachment("KaSamConstructorSymbol", analysisSession, this@samMethod)
+            functionalInterface.functionalInterfaceFunction
+                ?: errorWithAttachment("SAM constructor should have a corresponding function in its functional interface") {
+                    withSymbolAttachment("KaSamConstructorSymbol", analysisSession, this@functionalInterfaceFunction)
                     withSymbolAttachment("functionalInterface", analysisSession, functionalInterface)
                 }
         }
